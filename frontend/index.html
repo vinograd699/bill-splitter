@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Splitter - Разделение счетов</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Дополнительные стили для улучшения UX */
+        .quality-tips {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .quality-tips h4 {
+            margin-top: 0;
+            color: #1976D2;
+        }
+        
+        .quality-tips ul {
+            margin-bottom: 0;
+            padding-left: 20px;
+        }
+        
+        .debug-panel {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .receipt-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .receipt-type-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .receipt-type-btn.active {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .enhance-options {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .enhance-btn {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .enhance-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💸 Bill Splitter</h1>
+            <p>Простой способ разделить счета с друзьями</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-button active" data-tab="create">Создать счет</button>
+            <button class="tab-button" data-tab="bills">Мои счета</button>
+            <button class="tab-button" data-tab="split">Результаты</button>
+        </nav>
+
+        <main>
+            <!-- Вкладка создания счета -->
+            <div id="create-tab" class="tab-content active">
+                <div class="card">
+                    <h2>Создать новый счет</h2>
+                    
+                    <form id="bill-form">
+                        <div class="form-group">
+                            <label for="bill-title">Название счета:</label>
+                            <input type="text" id="bill-title" required placeholder="Ужин в ресторане">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bill-description">Описание:</label>
+                            <textarea id="bill-description" placeholder="Дополнительная информация"></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <!-- УБРАНО ПОЛЕ НАЛОГА -->
+                            <div class="form-group">
+                                <label for="bill-tip">Чаевые (%):</label>
+                                <input type="number" id="bill-tip" value="10" min="0" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label for="bill-currency">Валюта:</label>
+                                <select id="bill-currency">
+                                    <option value="RUB">₽ RUB</option>
+                                    <option value="USD">$ USD</option>
+                                    <option value="EUR">€ EUR</option>
+                                    <option value="GBP">£ GBP</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Участники -->
+                        <div class="form-section">
+                            <h3>Участники</h3>
+                            <div id="participants-container">
+                                <div class="participant">
+                                    <input type="text" class="participant-name" placeholder="Имя участника" required>
+                                    <input type="email" class="participant-email" placeholder="Email (опционально)">
+                                    <button type="button" class="remove-participant" onclick="removeParticipant(this)">×</button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-secondary" onclick="addParticipant()">+ Добавить участника</button>
+                        </div>
+
+                        <!-- Позиции счета -->
+                        <div class="form-section">
+                            <h3>Позиции счета</h3>
+                            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                                <button type="button" class="btn-secondary" onclick="addItem()">+ Добавить позицию</button>
+                                <button type="button" class="btn-secondary" onclick="app.openScanModal()">
+                                    📷 Сканировать чек
+                                </button>
+                                <button type="button" class="btn-secondary" onclick="app.openManualReceiptModal()">
+                                    📝 Ввести текст чека
+                                </button>
+                            </div>
+                            <div id="items-container">
+                                <div class="item">
+                                    <input type="text" class="item-name" placeholder="Название позиции" required>
+                                    <input type="number" class="item-price" placeholder="Цена" min="0" step="0.01" required>
+                                    <div class="item-consumers">
+                                        <label class="consumer-checkbox">
+                                            <input type="checkbox" value="0" checked> Участник 1
+                                        </label>
+                                    </div>
+                                    <button type="button" class="remove-item" onclick="removeItem(this)">×</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary">Создать счет</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Вкладка списка счетов -->
+            <div id="bills-tab" class="tab-content">
+                <div class="card">
+                    <h2>Мои счета</h2>
+                    <div id="bills-list" class="bills-grid">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Загрузка счетов...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка результатов -->
+            <div id="split-tab" class="tab-content">
+                <div class="card">
+                    <h2>Результаты разделения</h2>
+                    <div id="split-results">
+                        <p class="placeholder">Выберите счет для просмотра результатов</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Модальное окно для просмотра счета -->
+    <div id="bill-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для сканирования чека -->
+    <div id="scan-receipt-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="app.closeScanModal()">&times;</span>
+            <h2>📷 Сканирование чека</h2>
+            
+            <div class="quality-tips">
+                <h4>Советы для лучшего распознавания:</h4>
+                <ul>
+                    <li>Используйте хорошее освещение</li>
+                    <li>Сфотографируйте чек прямо, без наклона</li>
+                    <li>Убедитесь, что весь текст чека виден</li>
+                    <li>Избегайте бликов и теней</li>
+                </ul>
+            </div>
+            
+            <div class="scan-steps">
+                <div class="step active" data-step="1">Загрузка</div>
+                <div class="step" data-step="2">Распознавание</div>
+                <div class="step" data-step="3">Результат</div>
+            </div>
+
+            <!-- Шаг 1: Загрузка фото -->
+            <div id="scan-step-1" class="scan-step active">
+                <div class="receipt-type-selector">
+                    <div class="receipt-type-btn active" data-type="restaurant">
+                        🍽️ Ресторан/Кафе
+                    </div>
+                    <div class="receipt-type-btn" data-type="store">
+                        🛒 Магазин
+                    </div>
+                    <div class="receipt-type-btn" data-type="other">
+                        📄 Другое
+                    </div>
+                </div>
+                
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-placeholder">
+                        <span class="upload-icon">📁</span>
+                        <p>Перетащите сюда фото чека или нажмите для выбора</p>
+                        <p class="upload-hint">Поддерживаются: JPG, PNG</p>
+                    </div>
+                    <input type="file" id="receipt-file" accept="image/*" style="display: none;">
+                </div>
+                
+                <div class="enhance-options">
+                    <button type="button" class="enhance-btn active" data-enhance="auto">Авто</button>
+                    <button type="button" class="enhance-btn" data-enhance="contrast">Контраст</button>
+                    <button type="button" class="enhance-btn" data-enhance="grayscale">Черно-белый</button>
+                </div>
+                
+                <button type="button" class="btn-secondary" onclick="document.getElementById('receipt-file').click()">
+                    Выбрать файл
+                </button>
+                
+                <div style="text-align: center; margin-top: 15px;">
+                    <button type="button" class="btn-secondary" onclick="app.openManualReceiptModal()">
+                        Или ввести текст вручную
+                    </button>
+                </div>
+            </div>
+
+            <!-- Шаг 2: Распознавание -->
+            <div id="scan-step-2" class="scan-step">
+                <div class="preview-container">
+                    <div class="image-preview">
+                        <img id="receipt-preview" src="" alt="Предпросмотр чека">
+                        <div class="progress-overlay" id="progress-overlay" style="display: none;">
+                            <div class="spinner"></div>
+                            <p id="progress-text">Распознавание...</p>
+                        </div>
+                    </div>
+                    <div class="text-preview">
+                        <h4>Распознанный текст:</h4>
+                        <textarea id="recognized-text" placeholder="Текст будет распознан автоматически..." readonly></textarea>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button type="button" class="btn-secondary" onclick="app.manualEditText()">
+                                Редактировать
+                            </button>
+                            <button type="button" class="btn-secondary" onclick="app.retryRecognition()">
+                                Повторить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="scan-actions">
+                    <button type="button" class="btn-secondary" onclick="app.previousStep()">Назад</button>
+                    <button type="button" class="btn-primary" onclick="app.parseReceiptText()" id="parse-btn">
+                        📊 Анализировать позиции
+                    </button>
+                </div>
+            </div>
+
+            <!-- Шаг 3: Результаты распознавания -->
+            <div id="scan-step-3" class="scan-step">
+                <div class="scan-results">
+                    <h4>Найденные позиции:</h4>
+                    <div id="parsed-items-list" class="parsed-items">
+                        <!-- Позиции будут добавлены здесь -->
+                    </div>
+                    <div class="scan-summary">
+                        <p>Найдено позиций: <span id="items-count">0</span></p>
+                        <p>Общая сумма: <span id="total-amount">0</span> <span id="currency-symbol">₽</span></p>
+                    </div>
+                </div>
+                <div class="scan-actions">
+                    <button type="button" class="btn-secondary" onclick="app.previousStep()">Назад</button>
+                    <button type="button" class="btn-primary" onclick="app.addParsedItemsToBill()">
+                        ✅ Добавить к счету
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для ручного ввода текста чека -->
+    <div id="manual-receipt-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="app.closeManualReceiptModal()">&times;</span>
+            <h2>📝 Ввод текста чека</h2>
+            
+            <div class="quality-tips">
+                <h4>Формат текста для лучшего распознавания:</h4>
+                <ul>
+                    <li>Каждая позиция на отдельной строке</li>
+                    <li>Цена в конце строки (например: "Кофе 250.00")</li>
+                    <li>Избегайте лишних символов и служебной информации</li>
+                </ul>
+            </div>
+            
+            <div class="form-group">
+                <label for="manual-receipt-text">Текст чека:</label>
+                <textarea id="manual-receipt-text" placeholder="Введите текст чека здесь...
+Например:
+Кофе 250.00
+Салат Цезарь 450.00
+Стейк 1200.00" style="height: 300px; font-family: monospace;"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="manual-currency">Валюта:</label>
+                <select id="manual-currency">
+                    <option value="RUB">₽ RUB</option>
+                    <option value="USD">$ USD</option>
+                    <option value="EUR">€ EUR</option>
+                    <option value="GBP">£ GBP</option>
+                </select>
+            </div>
+            
+            <div class="scan-actions">
+                <button type="button" class="btn-secondary" onclick="app.closeManualReceiptModal()">Отмена</button>
+                <button type="button" class="btn-primary" onclick="app.processManualReceipt()">
+                    📊 Анализировать позиции
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключим Tesseract.js для OCR -->
+    <script src="https://unpkg.com/tesseract.js@v4.1.1/dist/tesseract.min.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Дополнительные обработчики для улучшенного интерфейса
+        document.addEventListener('DOMContentLoaded', function() {
+            // Обработчики для выбора типа чека
+            document.querySelectorAll('.receipt-type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.receipt-type-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    app.currentReceiptType = this.dataset.type;
+                });
+            });
+            
+            // Обработчики для выбора улучшения изображения
+            document.querySelectorAll('.enhance-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.enhance-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    app.currentEnhanceMode = this.dataset.enhance;
+                });
+            });
+            
+            // Инициализация значений по умолчанию
+            app.currentReceiptType = 'restaurant';
+            app.currentEnhanceMode = 'auto';
+        });
+    </script>
+</body>
+</html>

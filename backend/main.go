@@ -1,104 +1,123 @@
+// backend/main.go
 package main
 
 import (
-	"bill-splitter/handlers"
-	"bill-splitter/storage"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
-	"path/filepath"
-	"runtime"
+	"net/url"
+	"os"
+	"strconv"
 	"strings"
 )
 
 func main() {
-	// Инициализация хранилища и обработчиков
-	store := storage.NewMemoryStorage()
-	billHandler := handlers.NewBillHandler(store)
+	const token = "36760.XTUcy2f6NnuU2W9gr"
 
-	// Получаем путь к директории frontend
-	_, filename, _, _ := runtime.Caller(0)
-	rootDir := filepath.Dir(filepath.Dir(filename))
-	frontendDir := filepath.Join(rootDir, "frontend")
+	if token == "" {
+		log.Fatal("❌ Ошибка: токен не установлен")
+	}
+	log.Println("✅ Токен загружен (для отладки)")
 
-	// Middleware для CORS
-	corsMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	http.HandleFunc("GET /api/bills", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, `{"bills":[]}`)
+	})
 
-			if r.Method == "OPTIONS" {
+	http.HandleFunc("POST /api/bills", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, `{"id":"1", "title":"Новый счёт"}`)
+	})
+
+	http.HandleFunc("POST /api/check", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("✅ Получен запрос: POST /api/check")
+
+		fn := strings.TrimSpace(r.FormValue("fn"))
+		fd := strings.TrimSpace(r.FormValue("fd"))
+		fp := strings.TrimSpace(r.FormValue("fp"))
+		t := strings.TrimSpace(r.FormValue("t"))
+		s := strings.TrimSpace(r.FormValue("s"))
+		n := strings.TrimSpace(r.FormValue("n"))
+
+		if fn == "" || fd == "" || fp == "" || t == "" || s == "" {
+			log.Println("❌ Не хватает параметров")
+			http.Error(w, "Missing required parameters", http.StatusBadRequest)
+			return
+		}
+
+		if len(t) > 13 && t[13] >= '0' && t[13] <= '9' {
+			t = t[:13]
+		}
+
+		s = strings.TrimSpace(strings.ReplaceAll(s, ",", "."))
+		if _, err := strconv.ParseFloat(s, 64); err != nil {
+			log.Printf("❌ Некорректная сумма: %s", s)
+			http.Error(w, "Invalid sum format", http.StatusBadRequest)
+			return
+		}
+
+		log.Printf("🔧 Параметры: fn=%s, fd=%s, fp=%s, t=%s, s=%s, n=%s", fn, fd, fp, t, s, n)
+
+		data := url.Values{}
+		data.Set("fn", fn)
+		data.Set("fd", fd)
+		data.Set("fp", fp)
+		data.Set("t", t)
+		data.Set("s", s)
+		data.Set("n", n)
+		data.Set("qr", "1")
+		data.Set("token", token)
+
+		log.Printf("📤 Отправка: %s", data.Encode())
+
+		req, err := http.NewRequest("POST", "https://proverkacheka.com/api/v1/check/get",
+			strings.NewReader(data.Encode()))
+		if err != nil {
+			http.Error(w, "Request failed", http.StatusInternalServerError)
+			return
+		}
+
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		req.Header.Set("User-Agent", "BillSplitter/1.0")
+
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			http.Error(w, "Failed to reach proverkacheka", http.StatusBadGateway)
+			return
+		}
+		defer resp.Body.Close()
+
+		log.Printf("📩 Статус: %d %s", resp.StatusCode, resp.Status)
+
+		for k, vv := range resp.Header {
+			for _, v := range vv {
+				w.Header().Add(k, v)
+			}
+		}
+		w.WriteHeader(resp.StatusCode)
+		io.Copy(w, resp.Body)
+	})
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		filePath := "../frontend" + r.URL.Path
+		if r.URL.Path != "/" {
+			if _, err := os.Stat(filePath); os.IsNotExist(err) {
+				http.NotFound(w, r)
 				return
 			}
-
-			next(w, r)
+			http.ServeFile(w, r, filePath)
+			return
 		}
+		http.ServeFile(w, r, "../frontend/index.html")
+	})
+
+	if _, err := os.Stat("../frontend/index.html"); os.IsNotExist(err) {
+		log.Fatal("❌ ../frontend/index.html не найден!")
 	}
 
-	// Сервим статические файлы
-	http.Handle("/", http.FileServer(http.Dir(frontendDir)))
-
-	// API маршруты
-	http.HandleFunc("/api/bills", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			billHandler.CreateBill(w, r)
-		case http.MethodGet:
-			billHandler.GetAllBills(w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	}))
-
-	http.HandleFunc("/api/bills/", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		path := r.URL.Path
-		id := strings.TrimPrefix(path, "/api/bills/")
-
-		if strings.Contains(id, "/") {
-			parts := strings.Split(id, "/")
-			id = parts[0]
-			action := parts[1]
-
-			switch action {
-			case "split":
-				if r.Method == http.MethodGet {
-					billHandler.CalculateSplit(w, r)
-				} else {
-					http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-				}
-			case "items":
-				if r.Method == http.MethodPost {
-					billHandler.AddItemToBill(w, r)
-				} else {
-					http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-				}
-			default:
-				if r.Method == http.MethodGet {
-					billHandler.GetBill(w, r)
-				} else {
-					http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-				}
-			}
-		} else {
-			if r.Method == http.MethodGet {
-				billHandler.GetBill(w, r)
-			} else {
-				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			}
-		}
-	}))
-
-	// Запуск сервера
-	port := ":8080"
-	fmt.Printf("Bill splitter service running on http://localhost%s\n", port)
-	fmt.Printf("Frontend available at http://localhost%s\n", port)
-	fmt.Println("API Endpoints:")
-	fmt.Println("  POST   /api/bills - Create new bill")
-	fmt.Println("  GET    /api/bills - Get all bills")
-	fmt.Println("  GET    /api/bills/{id} - Get bill by ID")
-	fmt.Println("  GET    /api/bills/{id}/split - Calculate bill split")
-	fmt.Println("  POST   /api/bills/{id}/items - Add item to bill")
-
-	log.Fatal(http.ListenAndServe(port, nil))
+	port := "3000"
+	fmt.Printf("✅ Сервер запущен на http://localhost:%s\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

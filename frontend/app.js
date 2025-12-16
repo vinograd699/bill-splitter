@@ -1,4 +1,4 @@
-// frontend/app.js — Полная рабочая версия
+// frontend/app.js — Полная рабочая версия (Версия 3.2)
 // Платим вместе — Разделение счёта
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -307,7 +307,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 feedback: 'Обратная связь',
                 developer: 'Разработчик: Виноградов Павел',
                 email: 'Почта: vinograd699@gmail.com',
-                version: '© 2025 "Дели счёт". Все права защищены.'
+                version: '© 2025 "Дели счёт". Все права защищены.',
+                donateTitle: 'Поддержите проект 💙',
+                donateDesc: 'Помогите развивать «Дели счёт» — любой вклад важен!',
+                donateLabel: '₽',
+                donateBtn: '💸 Поддержать через ЮMoney',
+                donateFooter: 'Без комиссии • Через СБП • Защищено ЮMoney'
             },
             en: {
                 scan: 'Scan Receipt',
@@ -328,7 +333,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 feedback: 'Feedback',
                 developer: 'Developer: Vinogradov Pavel',
                 email: 'Email: vinograd699@gmail.com',
-                version: '© 2025 "Split the bill". All rights reserved.'
+                version: '© 2025 "Split the bill". All rights reserved.',
+                donateTitle: 'Support the project 💙',
+                donateDesc: 'Help us develop "Split the bill" — every contribution matters!',
+                donateLabel: '₽',
+                donateBtn: '💸 Support via YooMoney',
+                donateFooter: 'No fees • Via SBP • Protected by YooMoney'
             }
         }[lang] || t.ru;
 
@@ -496,14 +506,28 @@ document.addEventListener('DOMContentLoaded', function () {
             .replace(/'/g, '&#039;');
     }
 
-    // --- 9. ЗАПУСК ---
+    // --- 9. ДОНАТЫ — ПОДСТАНОВКА СУММЫ В ССЫЛКУ ---
+    const donateAmount = document.getElementById('donate-amount');
+    const donateButton = document.getElementById('donate-button');
+
+    if (donateAmount && donateButton) {
+        function updateDonateLink() {
+            const amount = parseFloat(donateAmount.value) || 100;
+            donateButton.href = `https://yoomoney.ru/to/4100119432123264/${amount}`;
+        }
+
+        donateAmount.addEventListener('input', updateDonateLink);
+        updateDonateLink(); // Устанавливает ссылку при загрузке
+    }
+
+    // --- 10. ЗАПУСК ---
     setupTabs();
     setupLanguageSwitcher();
     setupQRScanner();
     addParticipant();
     translatePage();
 
-    // --- 10. ЗАГРУЗКА jsQR ---
+    // --- 11. ЗАГРУЗКА jsQR ---
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
     script.async = true;

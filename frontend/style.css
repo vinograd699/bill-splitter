@@ -1,6 +1,6 @@
 /*
  * Стили для "Дели счёт" — Разделение чека
- * Версия 3.7 — Чаевые горизонтально на мобильных, видимый переключатель языка
+ * Версия 4.1 — Все формы ввода уменьшены на 20% в мобильной версии
  */
 
 * {
@@ -49,11 +49,11 @@ body {
     transform: scale(1.03);
 }
 
-/* === Переключатель языка — видимый на мобильных === */
+/* === Переключатель языка === */
 .language-switcher {
     position: absolute;
     top: 20px;
-    right: 20px; /* Уменьшили отступ справа для компактности */
+    right: 20px;
     z-index: 1000;
 }
 
@@ -144,7 +144,7 @@ body {
     font-weight: 600;
 }
 
-/* === Формы — одинаковый стиль === */
+/* === Формы — универсальные стили === */
 .participant,
 .item,
 #tip-controls {
@@ -181,21 +181,8 @@ body {
     min-width: 44px;
 }
 
-/* === Чаевые — горизонтально на мобильных === */
-#tip-controls {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-
-#tip-percent, #tip-fixed {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-#tip-amount, #tip-fixed-amount {
+#tip-amount,
+#tip-fixed-amount {
     width: 90px;
     padding: 12px;
     border: 1px solid #d2d2d7;
@@ -203,61 +190,82 @@ body {
     font-size: 17px;
 }
 
-.or-text {
-    color: #777;
-    font-weight: 500;
-    white-space: nowrap;
+/* === Кнопки === */
+button,
+#add-participant-btn,
+#calculate-btn {
+    font-size: 17px;
+    padding: 14px 20px;
+    border-radius: 10px;
 }
 
-/* === Адаптивность для мобильных === */
+#add-participant-btn,
+#calculate-btn {
+    width: 100%;
+    margin: 16px 0;
+}
+
+/* === Адаптивность: мобильная версия — уменьшаем всё на 20% === */
 @media (max-width: 768px) {
     /* Уменьшаем текст вкладок на 20% */
     .tab-button {
-        font-size: 12.8px;
-        padding: 12px 12px;
-        min-width: 90px;
+        font-size: 12.8px;  /* 16px × 0.8 */
+        padding: 11.2px 12.8px;  /* 14px × 0.8 */
+        min-width: 88px;
     }
 
-    /* Чаевые — поля в строку, даже на мобильных */
+    /* Уменьшаем размер полей ввода */
+    input[type="text"],
+    input[type="number"],
+    .item-name,
+    .item-price,
+    .item-quantity,
+    #tip-amount,
+    #tip-fixed-amount {
+        font-size: 13.6px;  /* 17px × 0.8 */
+        padding: 9.6px;  /* 12px × 0.8 */
+        border-radius: 6.4px;  /* 8px × 0.8 */
+    }
+
+    /* Уменьшаем кнопки */
+    button,
+    .remove-participant,
+    .remove-item {
+        font-size: 13.6px;  /* 17px × 0.8 */
+        padding: 11.2px 16px;  /* 14px × 0.8 */
+    }
+
+    /* Уменьшаем отступы в формах */
+    .participant,
+    .item,
+    #tip-controls {
+        padding: 12.8px;  /* 16px × 0.8 */
+        margin-bottom: 9.6px;  /* 12px × 0.8 */
+    }
+
+    /* Уменьшаем gap в tip-controls */
+    #tip-controls {
+        gap: 12.8px;  /* 16px × 0.8 */
+    }
+
+    #tip-percent,
+    #tip-fixed {
+        gap: 4.8px;
+    }
+
+    /* Чаевые — остаются горизонтально */
     #tip-controls {
         flex-direction: row;
         justify-content: flex-start;
         align-items: center;
     }
 
-    #tip-percent, #tip-fixed {
-        white-space: nowrap;
-    }
-
-    #tip-amount, #tip-fixed-amount {
-        width: 80px;
-        font-size: 14px;
-        padding: 10px;
-    }
-
     .or-text {
-        margin: 0 8px;
+        font-size: 12px;  /* 15px × 0.8 */
+        margin: 0 6px;
     }
 
-    /* Формы — растягиваем во всю ширину */
-    .participant,
-    .item {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    /* Кнопки — во всю ширину */
-    button,
-    #add-participant-btn,
-    #calculate-btn,
-    .remove-participant,
-    .remove-item {
-        width: 100%;
-        font-size: 15px;
-        padding: 14px;
-    }
-
-    /* Логотип — немного уменьшим на очень малых экранах */
+    /* Логотип — чуть меньше на малых экранах */
     @media (max-width: 480px) {
         #logo-img {
             width: 200px;
@@ -273,43 +281,6 @@ body {
             font-size: 20px;
         }
     }
-}
-
-/* === Кнопки === */
-button {
-    background: #0071e3;
-    color: white;
-    border: none;
-    padding: 14px 20px;
-    font-size: 17px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-}
-
-button:hover {
-    background: #005edc;
-}
-
-button:active {
-    transform: scale(0.98);
-}
-
-#add-participant-btn {
-    background: #34c759;
-    font-size: 17px;
-    padding: 16px;
-    width: 100%;
-    margin: 16px 0;
-}
-
-#calculate-btn {
-    background: #ff9500;
-    font-size: 18px;
-    padding: 18px;
-    width: 100%;
-    font-weight: 600;
-    margin: 24px 0;
 }
 
 /* === Результат === */

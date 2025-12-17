@@ -1,4 +1,4 @@
-// frontend/app.js — Полная рабочая версия (Версия 3.2)
+// frontend/app.js — Полная рабочая версия (Версия 3.2, исправлена загрузка файла)
 // Платим вместе — Разделение счёта
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -74,11 +74,75 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- 3. СКАНИРОВАНИЕ QR-КОДА ---
+    // --- 3. ЗАГРУЗКА ФАЙЛА: КЛИК + DRAG & DROP (НЕ ЗАВИСИТ ОТ #scan-qr) ---
+    function setupFileUpload() {
+        const uploadArea = document.getElementById('upload-area');
+        const receiptPreview = document.getElementById('receipt-preview');
+
+        if (!uploadArea) {
+            console.error('❌ #upload-area не найден в DOM');
+            return;
+        }
+
+        if (!receiptPreview) {
+            console.error('❌ #receipt-preview не найден в DOM');
+            return;
+        }
+
+        // Клик: открыть проводник
+        uploadArea.addEventListener('click', () => {
+            console.log('📎 Клик по зоне загрузки');
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    console.log('📎 Файл выбран:', file.name);
+                    const url = URL.createObjectURL(file);
+                    receiptPreview.innerHTML = `
+                        <img src="${url}" alt="Чек" style="max-width:100%;border-radius:12px;margin-top:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+                    `;
+                }
+            };
+            input.click();
+        });
+
+        // Drag & Drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.background = '#eef4ff';
+            uploadArea.style.borderColor = '#0071e3';
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.background = '#f8f8ff';
+            uploadArea.style.borderColor = '#d2d2d7';
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.background = '#f8f8ff';
+            uploadArea.style.borderColor = '#d2d2d7';
+
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                console.log('✅ Файл загружен через drag & drop:', file.name);
+                const url = URL.createObjectURL(file);
+                receiptPreview.innerHTML = `
+                    <img src="${url}" alt="Чек" style="max-width:100%;border-radius:12px;margin-top:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+                `;
+            } else {
+                alert('Пожалуйста, перетащите изображение');
+            }
+        });
+    }
+
+    // --- 4. СКАНИРОВАНИЕ QR-КОДА (опционально) ---
     function setupQRScanner() {
         const scanButton = document.getElementById('scan-qr');
         if (!scanButton) {
-            console.error('❌ Элемент #scan-qr не найден');
+            console.warn('🟡 Кнопка #scan-qr не найдена — сканирование отключено');
             return;
         }
 
@@ -93,14 +157,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 video.srcObject = stream;
                 video.autoplay = true;
                 video.playsInline = true;
-                video.style.width = '100%';
-                video.style.maxWidth = '400px';
-                video.style.borderRadius = '12px';
-                video.style.margin = '10px auto';
-                video.style.display = 'block';
+                video.style = 'width:100%;max-width:400px;border-radius:12px;margin:10px auto;display:block';
 
                 const container = document.getElementById('upload-area');
-                container.innerHTML = '<p style="color: #0071e3; margin: 10px 0;">🔍 Наведите камеру на QR-код</p>';
+                container.innerHTML = '<p style="color:#0071e3;margin:10px 0">🔍 Наведите камеру на QR-код</p>';
                 container.appendChild(video);
 
                 const canvas = document.createElement('canvas');
@@ -108,15 +168,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const scanLoop = setInterval(() => {
                     if (video.videoWidth === 0) return;
-
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                    if (typeof jsQR === 'undefined') {
-                        console.warn('🟡 Ожидание загрузки jsQR...');
-                        return;
-                    }
+                    if (typeof jsQR === 'undefined') return;
 
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                     const code = jsQR(imageData.data, canvas.width, canvas.height);
@@ -132,60 +188,48 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (err) {
                 console.error('❌ Ошибка камеры:', err);
                 let errorMsg = 'Неизвестная ошибка';
-                if (err.name === 'NotAllowedError') {
-                    errorMsg = '❌ Доступ к камере запрещён';
-                } else if (err.name === 'NotFoundError') {
-                    errorMsg = '❌ Камера не найдена';
-                } else if (err.name === 'NotReadableError') {
-                    errorMsg = '❌ Камера занята (например, другим приложением)';
-                } else if (err.name === 'NotSupportedError') {
-                    errorMsg = '❌ Требуется безопасное соединение (HTTPS или localhost)';
-                }
+                if (err.name === 'NotAllowedError') errorMsg = '❌ Доступ к камере запрещён';
+                if (err.name === 'NotFoundError') errorMsg = '❌ Камера не найдена';
+                if (err.name === 'NotReadableError') errorMsg = '❌ Камера занята';
+                if (err.name === 'NotSupportedError') errorMsg = '❌ Требуется HTTPS';
 
-                document.getElementById('upload-area').innerHTML = `<p style="color: red;">${errorMsg}</p>`;
+                document.getElementById('upload-area').innerHTML = `<p style="color:red">${errorMsg}</p>`;
                 alert(errorMsg);
             }
         });
     }
 
-    // Остановка видео-потока
+    // Остановка потока
     function stopStream(stream) {
         stream.getTracks().forEach(track => track.stop());
     }
 
-    // Разбор QR-URL (из чека)
+    // Разбор QR-URL
     function parseQRUrl(qrData) {
-        console.log('📝 Обработка QR-данных:', qrData);
-
+        console.log('📝 Обработка QR:', qrData);
         try {
-            // Поддержка разных форматов: URL или "t=...&fn=..."
             const raw = qrData.includes('?') ? qrData.split('?')[1] : qrData;
             const params = new URLSearchParams(raw);
-
             const fn = params.get('fn');
-            const i = params.get('i') || params.get('fd');
+            const fd = params.get('i') || params.get('fd');
             const fp = params.get('fp');
             const t = params.get('t');
             const s = params.get('s');
 
-            if (!fn || !i || !fp || !t || !s) {
-                alert('❌ QR-код не содержит необходимых данных');
-                console.warn('Отсутствуют параметры:', { fn, i, fp, t, s });
+            if (!fn || !fd || !fp || !t || !s) {
+                alert('❌ QR-код не содержит данных');
                 return;
             }
 
-            // Обрезаем t, если слишком длинный
             const formattedT = t.length > 13 ? t.substring(0, 13) : t;
-
-            // Попробуем запросить чек с сервера
-            fetchCheckFromAPI(fn, i, fp, formattedT, s);
+            fetchCheckFromAPI(fn, fd, fp, formattedT, s);
         } catch (err) {
             console.error('❌ Ошибка парсинга QR:', err);
             alert('❌ Не удалось распознать QR-код');
         }
     }
 
-    // Запрос к серверу для получения чека
+    // Запрос чека
     async function fetchCheckFromAPI(fn, fd, fp, t, s) {
         const container = document.getElementById('upload-area');
         container.innerHTML = '<div class="loading">📥 Получение чека...</div>';
@@ -203,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 data = JSON.parse(text);
             } catch (e) {
                 alert('❌ Ответ сервера не JSON');
-                container.innerHTML = '<p>❌ Ошибка ответа</p>';
+                container.innerHTML = '<p>❌ Ошибка</p>';
                 return;
             }
 
@@ -219,20 +263,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
             fillItemsFromCheck(items);
             showNotification('✅ Чек загружен', 'success');
-            container.innerHTML = '<p style="color: green;">✅ Чек успешно загружен</p>';
+            container.innerHTML = '<p style="color:green">✅ Чек успешно загружен</p>';
 
         } catch (err) {
             console.error('❌ Ошибка загрузки чека:', err);
             showNotification('❌ ' + err.message, 'error');
-            container.innerHTML = `<p style="color: red;">❌ ${err.message}</p>`;
+            container.innerHTML = `<p style="color:red">❌ ${err.message}</p>`;
         }
     }
 
-    // Заполняем товары из чека
+    // Заполнить товары
     function fillItemsFromCheck(items) {
         const container = document.getElementById('items-container');
         container.innerHTML = '';
-
         items.forEach(item => {
             const total = (item.price * item.quantity).toFixed(2);
             const el = document.createElement('div');
@@ -240,18 +283,17 @@ document.addEventListener('DOMContentLoaded', function () {
             el.innerHTML = `
                 <input type="text" class="item-name" value="${escapeHtml(item.name)}" required>
                 <input type="number" class="item-price" value="${item.price}" step="0.01" required>
-                <input type="number" class="item-quantity" value="${item.quantity}" min="1" step="1" style="width: 60px;">
+                <input type="number" class="item-quantity" value="${item.quantity}" min="1" step="1" style="width:60px">
                 <span class="item-total"><b>= ${total} ₽</b></span>
                 <div class="item-consumers"></div>
                 <button type="button" class="remove-item" onclick="removeItem(this)">×</button>
             `;
             container.appendChild(el);
         });
-
         updateConsumerCheckboxes();
     }
 
-    // --- 4. ПЕРЕКЛЮЧЕНИЕ ЯЗЫКА ---
+    // --- 5. ПЕРЕКЛЮЧЕНИЕ ЯЗЫКА ---
     function setupLanguageSwitcher() {
         const toggle = document.getElementById('lang-toggle');
         const menu = document.getElementById('lang-menu');
@@ -283,10 +325,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Перевод интерфейса
     function translatePage(lang = localStorage.getItem('appLang') || 'ru') {
-        console.log('🔄 Перевод на:', lang);
-
         const t = {
             ru: {
                 scan: 'Сканировать чек',
@@ -301,9 +340,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 tips: 'Чаевые',
                 calculateBtn: 'Рассчитать счёт',
                 result: 'Результат',
-                aboutDesc1: '<strong>"Дели счёт"</strong> — это удобное приложение для разделения счёта между друзьями, семьёй или коллегами после совместной покупки или обеда.',
-                aboutDesc2: 'Просто <strong>отсканируйте QR-код чека</strong> — приложение автоматически извлечёт список товаров, цены и количество. Затем укажите, кто за что платит, и <strong>"Дели счёт"</strong> рассчитает, сколько должен каждый участник.',
-                aboutDesc3: 'Больше не нужно считать в уме, делить на калькуляторе или спорить — всё честно, быстро и точно.',
+                aboutDesc1: '<strong>"Дели счёт"</strong> — это удобное приложение для разделения счёта...',
+                aboutDesc2: 'Просто <strong>отсканируйте QR-код чека</strong> — приложение автоматически...',
+                aboutDesc3: 'Больше не нужно считать в уме...',
                 feedback: 'Обратная связь',
                 developer: 'Разработчик: Виноградов Павел',
                 email: 'Почта: vinograd699@gmail.com',
@@ -327,25 +366,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 tips: 'Tips',
                 calculateBtn: 'Calculate Bill',
                 result: 'Result',
-                aboutDesc1: '<strong>"Split the bill"</strong> is a convenient app to split bills among friends, family, or colleagues after a meal or shopping.',
-                aboutDesc2: 'Just <strong>scan the receipt QR code</strong> — the app will automatically extract the list of items, prices, and quantities. Then specify who pays for what, and <strong>«"Split the bill"</strong> will calculate how much each person owes.',
-                aboutDesc3: 'No more mental math, calculator fights, or arguments — everything is fair, fast, and accurate.',
-                feedback: 'Feedback',
+                aboutDesc1: '<strong>"Split the bill"</strong> is a convenient app...',
                 developer: 'Developer: Vinogradov Pavel',
                 email: 'Email: vinograd699@gmail.com',
-                version: '© 2025 "Split the bill". All rights reserved.',
-                donateTitle: 'Support the project 💙',
-                donateDesc: 'Help us develop "Split the bill" — every contribution matters!',
-                donateLabel: '₽',
-                donateBtn: '💸 Support via YooMoney',
-                donateFooter: 'No fees • Via SBP • Protected by YooMoney'
+                version: '© 2025 "Split the bill". All rights reserved.'
             }
         }[lang] || t.ru;
 
         function setText(id, text, method = 'textContent') {
             const el = document.getElementById(id);
             if (el) el[method] = text;
-            else console.warn('⚠️ Элемент не найден:', id);
         }
 
         setText('tab-scan', t.scan);
@@ -362,20 +392,15 @@ document.addEventListener('DOMContentLoaded', function () {
         setText('label-about', t.about);
         setText('feedback-label', t.feedback);
         setText('about-desc-1', t.aboutDesc1, 'innerHTML');
-        setText('about-desc-2', t.aboutDesc2, 'innerHTML');
-        setText('about-desc-3', t.aboutDesc3);
         setText('developer-info', `${t.developer}<br><a href="mailto:vinograd699@gmail.com">${t.email}</a>`, 'innerHTML');
         setText('version-info', t.version);
     }
 
-    // --- 5. РАСЧЁТ СЧЁТА ---
+    // --- 6. РАСЧЁТ СЧЁТА ---
     document.getElementById('bill-form')?.addEventListener('submit', function (e) {
         e.preventDefault();
-        console.log('🧮 Расчёт счёта');
-
         const participants = Array.from(document.querySelectorAll('#participants-container .participant-name'))
-            .map(el => el.value.trim())
-            .filter(name => name);
+            .map(el => el.value.trim()).filter(name => name);
 
         if (participants.length === 0) {
             showNotification('❌ Нет участников', 'error');
@@ -388,12 +413,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const quantity = parseFloat(el.querySelector('.item-quantity').value) || 0;
             const consumers = Array.from(el.querySelectorAll('.item-consumers input:checked'))
                 .map(cb => cb.parentElement.textContent.trim());
-
             return { name, price, quantity, consumers };
         });
 
         const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
         let tip = 0;
         const tipPercent = document.getElementById('tip-percent').checked;
         if (tipPercent) {
@@ -408,7 +431,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const totals = {};
         participants.forEach(name => totals[name] = 0);
-
         items.forEach(item => {
             const itemTotal = item.price * item.quantity;
             const share = item.consumers.length > 0 ? itemTotal / item.consumers.length : 0;
@@ -418,12 +440,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         });
-
         participants.forEach(name => {
             totals[name] += tipPerPerson;
         });
-
-        // Округление
         Object.keys(totals).forEach(name => {
             totals[name] = Math.round(totals[name] * 100) / 100;
         });
@@ -431,13 +450,11 @@ document.addEventListener('DOMContentLoaded', function () {
         showResult(totals, { subtotal, tip, total: totalWithTip });
     });
 
-    // Показ результата
     function showResult(totals, breakdown) {
         const result = document.getElementById('result');
         const details = document.getElementById('result-details');
         result.style.display = 'block';
         details.innerHTML = '';
-
         const lang = localStorage.getItem('appLang') || 'ru';
         const t = lang === 'en'
             ? { subtotal: 'Subtotal:', tip: 'Tip:', total: 'Total:', toPay: 'To pay:' }
@@ -454,34 +471,31 @@ document.addEventListener('DOMContentLoaded', function () {
         const hr = document.createElement('hr');
         details.appendChild(hr);
         addLine(t.total, breakdown.total);
-
         Object.keys(totals).forEach(name => {
             const div = document.createElement('div');
             div.textContent = `${name}: ${totals[name]} ₽`;
             div.style.fontSize = '18px';
             details.appendChild(div);
         });
-
         const totalAll = Object.values(totals).reduce((a, b) => a + b, 0);
         const final = document.createElement('div');
         final.innerHTML = `<b>${t.toPay} ${totalAll.toFixed(2)} ₽</b>`;
         final.style.color = '#0071e3';
         final.style.marginTop = '10px';
         details.appendChild(final);
-
         showNotification(lang === 'en' ? '✅ Bill calculated!' : '✅ Счёт рассчитан!', 'success');
     }
 
-    // --- 6. УВЕДОМЛЕНИЯ ---
+    // --- 7. УВЕДОМЛЕНИЯ ---
     function showNotification(message, type) {
         const n = document.createElement('div');
         n.className = `notification ${type}`;
         n.textContent = message;
         n.style.cssText = `
-            position: fixed; top: 30px; right: 30px; padding: 14px 20px;
-            border-radius: 10px; background: ${type === 'success' ? '#28a745' : '#dc3545'};
-            color: white; z-index: 10000; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            font-size: 14px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);
+            position: fixed; top: 30px; right: 30px; padding: 14px 20px; border-radius: 10px;
+            background: ${type === 'success' ? '#28a745' : '#dc3545'}; color: white;
+            z-index: 10000; box-shadow: 0 4px 20px rgba(0,0,0,0.15); font-size: 14px;
+            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);
             opacity: 1; transition: opacity 0.3s;
         `;
         document.body.appendChild(n);
@@ -491,12 +505,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 5000);
     }
 
-    // --- 7. УДАЛЕНИЕ ТОВАРА ---
+    // --- 8. УДАЛЕНИЕ ТОВАРА ---
     window.removeItem = function (button) {
         button.closest('.item').remove();
     };
 
-    // --- 8. ЭКРАНИРОВАНИЕ HTML ---
+    // --- 9. ЭКРАНИРОВАНИЕ HTML ---
     function escapeHtml(s) {
         return s.toString()
             .replace(/&/g, '&amp;')
@@ -506,28 +520,27 @@ document.addEventListener('DOMContentLoaded', function () {
             .replace(/'/g, '&#039;');
     }
 
-    // --- 9. ДОНАТЫ — ПОДСТАНОВКА СУММЫ В ССЫЛКУ ---
+    // --- 10. ДОНАТЫ ---
     const donateAmount = document.getElementById('donate-amount');
     const donateButton = document.getElementById('donate-button');
-
     if (donateAmount && donateButton) {
         function updateDonateLink() {
             const amount = parseFloat(donateAmount.value) || 100;
             donateButton.href = `https://yoomoney.ru/to/4100119432123264/${amount}`;
         }
-
         donateAmount.addEventListener('input', updateDonateLink);
-        updateDonateLink(); // Устанавливает ссылку при загрузке
+        updateDonateLink();
     }
 
-    // --- 10. ЗАПУСК ---
+    // --- 11. ЗАПУСК ---
     setupTabs();
     setupLanguageSwitcher();
-    setupQRScanner();
+    setupFileUpload();     // ✅ Загрузка файла (главное!)
+    setupQRScanner();      // Опционально: если нужна камера
     addParticipant();
     translatePage();
 
-    // --- 11. ЗАГРУЗКА jsQR ---
+    // --- 12. ЗАГРУЗКА jsQR ---
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
     script.async = true;

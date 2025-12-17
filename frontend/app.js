@@ -1,5 +1,5 @@
-// frontend/app.js — "Дели счёт" (Версия 5.1)
-// Поддержка: темная тема, флаги, QR, drag & drop
+// frontend/app.js — "Дели счёт" (Версия 5.2)
+// Только ручное переключение темы, кнопка слева
 // Автор: GigaCode
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        if (!receiptPreview) {
+        if (!receipt-preview) {
             console.error('❌ #receipt-preview не найден');
             return;
         }
@@ -529,15 +529,14 @@ document.addEventListener('DOMContentLoaded', function () {
         updateDonateLink();
     }
 
-    // --- 12. ТЕМНАЯ ТЕМА ---
+    // --- 12. ТЕМНАЯ ТЕМА — ТОЛЬКО РУЧНОЕ ПЕРЕКЛЮЧЕНИЕ (БЕЗ AUTO) ---
     function setupThemeToggle() {
         const toggle = document.getElementById('theme-toggle');
 
-        const savedTheme = localStorage.getItem('appTheme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const isDark = savedTheme ? savedTheme === 'dark' : prefersDark;
+        // Только из localStorage, без prefers-color-scheme
+        const savedTheme = localStorage.getItem('appTheme') || 'light';
 
-        if (isDark) {
+        if (savedTheme === 'dark') {
             document.documentElement.setAttribute('data-theme', 'dark');
             toggle.textContent = '🌙';
         } else {
@@ -546,8 +545,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         toggle.addEventListener('click', () => {
-            const current = document.documentElement.getAttribute('data-theme');
-            const newTheme = current === 'dark' ? 'light' : 'dark';
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
 
             if (newTheme === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
@@ -561,12 +560,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- 13. ЗАПУСК ---
+    // --- 13. ЗАПУСК ВСЕХ МОДУЛЕЙ ---
     setupTabs();
     setupLanguageSwitcher();
     setupFileUpload();
     setupQRScanner();
-    setupThemeToggle();
+    setupThemeToggle();  // Кнопка слева, только ручной режим
     addParticipant();
     translatePage();
 

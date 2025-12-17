@@ -1,6 +1,7 @@
 /*
- * Стили для "Дели счёт" — Версия 5.1
- * Поддержка светлой/тёмной темы, флагов, переключателя
+ * style.css — "Дели счёт" (Версия 5.2)
+ * Только ручное переключение темы
+ * Кнопка темы — слева сверху
  */
 
 * {
@@ -64,14 +65,16 @@ body {
     position: relative;
 }
 
-/* === Логотип === */
+/* === Логотип и переключатель темы — слева === */
 .app-header {
+    position: relative;
     text-align: center;
     padding: 30px 0 20px;
 }
 
 .logo-container {
     display: inline-block;
+    position: relative;
 }
 
 #logo-img {
@@ -83,11 +86,44 @@ body {
     object-fit: cover;
 }
 
-#logo-img:hover {
-    transform: scale(1.03);
+/* Переключатель темы — внутри логотипа, слева сверху */
+#theme-toggle {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--text-primary);
+    cursor: pointer;
+    box-shadow: 0 2px 6px var(--shadow);
+    transition: all 0.2s ease;
+    z-index: 10;
 }
 
-/* === Переключатель языка === */
+#theme-toggle:hover {
+    transform: scale(1.1);
+    background: var(--accent-color);
+    color: white;
+}
+
+[data-theme="dark"] #theme-toggle {
+    background: var(--card-bg);
+    border-color: var(--accent-color);
+}
+
+[data-theme="dark"] #theme-toggle:hover {
+    background: var(--accent-color);
+    color: white;
+}
+
+/* === Переключатель языка — справа вверху === */
 .language-switcher {
     position: absolute;
     top: 20px;
@@ -135,24 +171,6 @@ body {
 
 #lang-menu button:hover {
     background: #3a3a3a;
-}
-
-/* === Переключатель темы === */
-#theme-toggle {
-    position: absolute;
-    top: 20px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: var(--text-primary);
-    z-index: 1000;
-    transition: transform 0.2s ease;
-}
-
-#theme-toggle:hover {
-    transform: scale(1.1);
 }
 
 /* === Вкладки === */
@@ -410,14 +428,15 @@ button:active {
     position: fixed;
     top: 30px;
     right: 30px;
-    padding: 16px 22px;
-    border-radius: 12px;
+    padding: 14px 20px;
+    border-radius: 10px;
     color: white;
     z-index: 10000;
     box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    font-size: 15px;
+    font-size: 14px;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,0.2);
+    opacity: 1;
     transition: opacity 0.3s ease;
 }
 
@@ -434,6 +453,19 @@ button:active {
 @media (max-width: 768px) {
     .app-header {
         padding: 20px 0 16px;
+    }
+
+    #logo-img {
+        width: 200px;
+        height: 200px;
+    }
+
+    #theme-toggle {
+        top: -8px;
+        left: -8px;
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
     }
 
     .tab-button {
@@ -475,11 +507,6 @@ button:active {
     }
 
     @media (max-width: 480px) {
-        #logo-img {
-            width: 200px;
-            height: 200px;
-        }
-
         .language-switcher {
             top: 12px;
             right: 12px;
@@ -487,35 +514,14 @@ button:active {
 
         #lang-toggle {
             font-size: 20px;
-            padding: 6px 10px;
         }
 
         #theme-toggle {
-            top: 12px;
-            right: 10px;
-            font-size: 18px;
+            top: -6px;
+            left: -6px;
+            width: 32px;
+            height: 32px;
+            font-size: 15px;
         }
-
-        .remove-participant,
-        .remove-item {
-            width: 24px !important;
-            height: 24px !important;
-            font-size: 15px !important;
-        }
-    }
-}
-
-/* === Автоопределение темы по системе === */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg-primary: #121212;
-        --bg-secondary: #1e1e1e;
-        --text-primary: #f0f0f0;
-        --text-secondary: #aaa;
-        --border-color: #444;
-        --card-bg: #252525;
-        --upload-bg: #2a2a2a;
-        --result-bg: #2d3748;
-        --result-border: #4a5568;
     }
 }

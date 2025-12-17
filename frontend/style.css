@@ -1,6 +1,6 @@
 /*
  * Стили для "Дели счёт" — Разделение чека
- * Версия 4.4 — Кнопки удаления уменьшены до размера чекбоксов
+ * Версия 4.4.1 — Кнопки удаления уменьшены и фиксированы для мобильных
  */
 
 * {
@@ -186,6 +186,8 @@ body {
 .remove-item {
     width: 28px;
     height: 28px;
+    min-width: 28px;
+    min-height: 28px;
     background: #ff3b30;
     color: white;
     border: none;
@@ -370,7 +372,6 @@ button:active {
         min-width: 88px;
     }
 
-    /* Уменьшаем поля ввода */
     input[type="text"],
     input[type="number"],
     .item-name,
@@ -383,12 +384,35 @@ button:active {
         border-radius: 6px;
     }
 
-    /* Кнопки удаления — на мобильных */
+    /* === ГАРАНТИРОВАННЫЙ ФИКС КНОПОК УДАЛЕНИЯ НА МОБИЛЬНЫХ === */
     .remove-participant,
     .remove-item {
-        width: 26px;
-        height: 26px;
-        font-size: 16px;
+        all: unset !important;
+        width: 26px !important;
+        height: 26px !important;
+        min-width: 26px !important;
+        min-height: 26px !important;
+        background: #ff3b30 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 50% !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        line-height: 1 !important;
+        text-align: center !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-left: 6px !important;
+        padding: 0 !important;
+        transition: background 0.2s, transform 0.1s !important;
+    }
+
+    .remove-participant:hover,
+    .remove-item:hover {
+        background: #d63031 !important;
+        transform: scale(1.1) !important;
     }
 
     /* Формы */
@@ -405,6 +429,7 @@ button:active {
         padding: 14px;
     }
 
+    /* === Дополнительный фикс на очень малых экранах === */
     @media (max-width: 480px) {
         #logo-img {
             width: 200px;
@@ -423,6 +448,13 @@ button:active {
 
         #lang-text {
             font-size: 13px;
+        }
+
+        .remove-participant,
+        .remove-item {
+            width: 24px !important;
+            height: 24px !important;
+            font-size: 15px !important;
         }
     }
 }

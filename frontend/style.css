@@ -1,6 +1,6 @@
 /*
  * Стили для "Дели счёт" — Разделение чека
- * Версия 3.5 — Увеличенный логотип, ровные вкладки, форма участников как "Чаевые"
+ * Версия 3.6 — Логотип 250px, ровные вкладки, единый стиль форм
  */
 
 * {
@@ -26,7 +26,7 @@ body {
     position: relative;
 }
 
-/* === Логотип — увеличен до 160px по ширине === */
+/* === Логотип — 250×250 px === */
 .app-header {
     text-align: center;
     padding: 30px 0 20px;
@@ -37,15 +37,16 @@ body {
 }
 
 #logo-img {
-    width: 160px; /* Увеличили ширину */
-    height: auto; /* Сохраняем пропорции */
-    border-radius: 16px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-    transition: transform 0.2s;
+    width: 250px;
+    height: 250px;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+    transition: transform 0.3s ease;
+    object-fit: cover;
 }
 
 #logo-img:hover {
-    transform: scale(1.05);
+    transform: scale(1.03);
 }
 
 /* Язык */
@@ -56,7 +57,7 @@ body {
     z-index: 100;
 }
 
-/* === Вкладки — горизонтальные, активная выделена ровно === */
+/* === Вкладки — чёткое выделение, одинаковый размер === */
 .tabs {
     display: flex;
     flex-wrap: nowrap;
@@ -98,48 +99,92 @@ body {
     color: #0071e3;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
     font-weight: 600;
-    /* Выделение чётко под текстом */
     border: none;
+    transform: none;
 }
 
-/* Адаптация для малых экранов */
-@media (max-width: 360px) {
+/* === Адаптивность: мобильная версия === */
+@media (max-width: 768px) {
+    /* Уменьшаем текст вкладок на 20% */
     .tab-button {
-        font-size: 14px;
-        padding: 12px 10px;
-        min-width: 100px;
+        font-size: 12.8px; /* 16px * 0.8 */
+        padding: 12px 12px;
+        min-width: 90px;
+    }
+
+    /* Единый стиль для всех форм — как "Чаевые" */
+    .participant,
+    .item,
+    #tip-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 14px;
+    }
+
+    .item-consumers {
+        margin-top: 10px;
+    }
+
+    .item-consumers label {
+        margin: 4px 0;
+    }
+
+    /* Поля ввода — во всю ширину */
+    input[type="text"],
+    input[type="number"],
+    .item-name,
+    .item-price,
+    .item-quantity,
+    #tip-amount,
+    #tip-fixed-amount {
+        width: 100%;
+        font-size: 15px;
+        padding: 12px;
+        border: 1px solid #d2d2d7;
+        border-radius: 8px;
+    }
+
+    /* Кнопки — во всю ширину */
+    button,
+    #add-participant-btn,
+    #calculate-btn,
+    .remove-participant,
+    .remove-item {
+        width: 100%;
+        font-size: 15px;
+        padding: 14px;
+    }
+
+    /* Уменьшаем отступы в контенте */
+    .tab-content {
+        padding: 20px 16px;
+    }
+
+    /* Логотип — немного уменьшим на очень малых экранах */
+    @media (max-width: 480px) {
+        #logo-img {
+            width: 200px;
+            height: 200px;
+        }
     }
 }
 
-/* === Контент вкладок === */
-.tab-content {
-    background: white;
-    padding: 32px;
-    border-radius: 16px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-    margin-bottom: 30px;
-}
-
-/* === Участники — как форма "Чаевые" === */
-#participants-container {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 12px;
-}
-
-.participant {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    padding: 12px;
+/* === Унифицированный стиль форм (десктоп + мобильный) === */
+.participant,
+.item,
+#tip-controls {
+    padding: 16px;
     background: #f8f8f8;
-    border-radius: 10px;
     border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    margin-bottom: 12px;
 }
 
-.participant input {
+/* Поля */
+.participant input,
+.item input,
+.item-name {
     flex: 1;
     min-width: 120px;
     padding: 12px;
@@ -149,7 +194,9 @@ body {
     font-family: inherit;
 }
 
-.remove-participant {
+/* Кнопки удаления */
+.remove-participant,
+.remove-item {
     background: #ff3b30;
     color: white;
     border: none;
@@ -160,34 +207,17 @@ body {
     min-width: 44px;
 }
 
-/* === Чаевые — для согласованности === */
+/* Чаевые — уже как шаблон, но явно зададим */
 #tip-controls {
     display: flex;
     align-items: center;
     gap: 16px;
     flex-wrap: wrap;
-    padding: 16px 0;
-    background: #f8f8f8;
-    border-radius: 10px;
-    border: 1px solid #e0e0e0;
-    margin: 10px 0;
 }
 
-#tip-percent, #tip-fixed {
-    width: auto;
-}
-
-#tip-amount, #tip-fixed-amount {
+#tip-amount,
+#tip-fixed-amount {
     width: 90px;
-    padding: 12px;
-    border: 1px solid #d2d2d7;
-    border-radius: 8px;
-    font-size: 17px;
-}
-
-.or-text {
-    color: #777;
-    font-weight: 500;
 }
 
 /* Кнопки */
@@ -218,11 +248,6 @@ button:active {
     margin: 16px 0;
 }
 
-#add-participant-btn:hover {
-    background: #2cb04e;
-}
-
-/* === Кнопка расчёта === */
 #calculate-btn {
     background: #ff9500;
     font-size: 18px;
@@ -232,11 +257,7 @@ button:active {
     margin: 24px 0;
 }
 
-#calculate-btn:hover {
-    background: #e68600;
-}
-
-/* === Результат === */
+/* Результат */
 #result {
     display: none;
     margin-top: 24px;
@@ -251,17 +272,11 @@ button:active {
     font-size: 17px;
 }
 
-#result-details hr {
-    border: 1px solid #ddd;
-    margin: 14px 0;
-}
-
-/* === Сканирование === */
+/* Сканирование */
 #scan-qr {
     background: #5856d6;
     margin: 24px 0;
     padding: 18px;
-    font-size: 17px;
     width: 100%;
 }
 
@@ -286,11 +301,6 @@ button:active {
     margin: 8px 0;
 }
 
-#upload-prompt {
-    color: #0071e3;
-    font-weight: 500;
-}
-
 #receipt-preview img {
     max-width: 100%;
     border-radius: 12px;
@@ -298,7 +308,7 @@ button:active {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* === Уведомления === */
+/* Уведомления */
 .notification {
     position: fixed;
     top: 30px;
@@ -313,28 +323,11 @@ button:active {
     border: 1px solid rgba(255,255,255,0.2);
 }
 
-/* === Скрытие табов === */
+/* Скрытие табов */
 .tab-content {
     display: none;
 }
 
 .tab-content.active {
     display: block;
-}
-
-/* === Адаптивность === */
-@media (max-width: 480px) {
-    .container {
-        padding: 0 16px;
-    }
-
-    .tab-content {
-        padding: 24px 16px;
-    }
-
-    .participant,
-    #tip-controls {
-        flex-direction: column;
-        align-items: stretch;
-    }
 }

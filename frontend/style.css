@@ -1,6 +1,6 @@
 /*
  * Стили для "Дели счёт" — Разделение чека
- * Версия 3.4 — Улучшенный дизайн: логотип, вкладки, отступы
+ * Версия 3.5 — Увеличенный логотип, ровные вкладки, форма участников как "Чаевые"
  */
 
 * {
@@ -26,7 +26,7 @@ body {
     position: relative;
 }
 
-/* Логотип — увеличен и центрирован */
+/* === Логотип — увеличен до 160px по ширине === */
 .app-header {
     text-align: center;
     padding: 30px 0 20px;
@@ -37,14 +37,15 @@ body {
 }
 
 #logo-img {
-    height: 80px; /* Увеличили с 60px */
+    width: 160px; /* Увеличили ширину */
+    height: auto; /* Сохраняем пропорции */
     border-radius: 16px;
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
     transition: transform 0.2s;
 }
 
 #logo-img:hover {
-    transform: scale(1.03);
+    transform: scale(1.05);
 }
 
 /* Язык */
@@ -55,7 +56,7 @@ body {
     z-index: 100;
 }
 
-/* Вкладки — горизонтальные, с прокруткой */
+/* === Вкладки — горизонтальные, активная выделена ровно === */
 .tabs {
     display: flex;
     flex-wrap: nowrap;
@@ -97,6 +98,8 @@ body {
     color: #0071e3;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
     font-weight: 600;
+    /* Выделение чётко под текстом */
+    border: none;
 }
 
 /* Адаптация для малых экранов */
@@ -108,7 +111,7 @@ body {
     }
 }
 
-/* Контент вкладок */
+/* === Контент вкладок === */
 .tab-content {
     background: white;
     padding: 32px;
@@ -117,21 +120,36 @@ body {
     margin-bottom: 30px;
 }
 
-/* Увеличили отступы для форм */
-.participant, .item {
+/* === Участники — как форма "Чаевые" === */
+#participants-container {
     display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-    padding: 16px;
-    background: #f9f9ff;
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
-    margin-bottom: 10px;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
 }
 
-.remove-participant,
-.remove-item {
+.participant {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px;
+    background: #f8f8f8;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+}
+
+.participant input {
+    flex: 1;
+    min-width: 120px;
+    padding: 12px;
+    border: 1px solid #d2d2d7;
+    border-radius: 8px;
+    font-size: 17px;
+    font-family: inherit;
+}
+
+.remove-participant {
     background: #ff3b30;
     color: white;
     border: none;
@@ -139,48 +157,37 @@ body {
     font-size: 16px;
     border-radius: 8px;
     cursor: pointer;
+    min-width: 44px;
 }
 
-.item {
-    align-items: flex-start;
+/* === Чаевые — для согласованности === */
+#tip-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px 0;
+    background: #f8f8f8;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    margin: 10px 0;
 }
 
-.item-name {
-    flex: 1 1 220px;
+#tip-percent, #tip-fixed {
+    width: auto;
+}
+
+#tip-amount, #tip-fixed-amount {
+    width: 90px;
     padding: 12px;
     border: 1px solid #d2d2d7;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 17px;
-    background: white;
 }
 
-.item-price,
-.item-quantity {
-    width: 110px;
-    padding: 12px;
-    border: 1px solid #d2d2d7;
-    border-radius: 10px;
-    font-size: 17px;
-    background: white;
-}
-
-.item-total {
-    font-weight: 600;
-    color: #333;
-    font-size: 17px;
-    margin-top: 8px;
-}
-
-.item-consumers {
-    flex: 1;
-    margin: 12px 0;
-}
-
-.item-consumers label {
-    display: inline-block;
-    margin: 6px 8px 6px 0;
-    font-size: 15px;
-    color: #555;
+.or-text {
+    color: #777;
+    font-weight: 500;
 }
 
 /* Кнопки */
@@ -205,9 +212,9 @@ button:active {
 
 #add-participant-btn {
     background: #34c759;
-    width: 100%;
     font-size: 17px;
     padding: 16px;
+    width: 100%;
     margin: 16px 0;
 }
 
@@ -215,46 +222,21 @@ button:active {
     background: #2cb04e;
 }
 
-/* Чаевые */
-#tip-controls {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-    padding: 16px 0;
-    background: #f8f8f8;
-    border-radius: 10px;
-    margin: 10px 0;
-}
-
-#tip-controls input[type="number"] {
-    width: 90px;
-    padding: 12px;
-    border: 1px solid #d2d2d7;
-    border-radius: 8px;
-    font-size: 17px;
-}
-
-.or-text {
-    color: #777;
-    font-weight: 500;
-}
-
-/* Кнопка расчёта */
+/* === Кнопка расчёта === */
 #calculate-btn {
     background: #ff9500;
     font-size: 18px;
     padding: 18px;
-    margin: 24px 0;
     width: 100%;
     font-weight: 600;
+    margin: 24px 0;
 }
 
 #calculate-btn:hover {
     background: #e68600;
 }
 
-/* Результат */
+/* === Результат === */
 #result {
     display: none;
     margin-top: 24px;
@@ -274,7 +256,7 @@ button:active {
     margin: 14px 0;
 }
 
-/* Сканирование чека */
+/* === Сканирование === */
 #scan-qr {
     background: #5856d6;
     margin: 24px 0;
@@ -283,18 +265,14 @@ button:active {
     width: 100%;
 }
 
-#scan-qr:hover {
-    background: #4a48c0;
-}
-
 #upload-area {
     text-align: center;
     padding: 40px 20px;
     border: 2px dashed #0071e3;
     border-radius: 14px;
     cursor: pointer;
-    transition: all 0.2s;
     background: #f8f8ff;
+    transition: all 0.2s;
 }
 
 #upload-area:hover {
@@ -320,7 +298,7 @@ button:active {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Уведомления */
+/* === Уведомления === */
 .notification {
     position: fixed;
     top: 30px;
@@ -333,11 +311,9 @@ button:active {
     font-size: 15px;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,0.2);
-    opacity: 1;
-    transition: opacity 0.3s;
 }
 
-/* Скрытие контента */
+/* === Скрытие табов === */
 .tab-content {
     display: none;
 }
@@ -346,7 +322,7 @@ button:active {
     display: block;
 }
 
-/* Адаптивность для малых экранов */
+/* === Адаптивность === */
 @media (max-width: 480px) {
     .container {
         padding: 0 16px;
@@ -356,15 +332,9 @@ button:active {
         padding: 24px 16px;
     }
 
-    .item-name,
-    .item-price,
-    .item-quantity {
-        font-size: 16px;
-        padding: 11px;
-    }
-
+    .participant,
     #tip-controls {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
     }
 }

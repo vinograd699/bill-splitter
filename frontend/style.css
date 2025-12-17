@@ -1,18 +1,56 @@
 /*
- * Стили для "Дели счёт" — Разделение чека
- * Версия 4.4.1 — Кнопки удаления уменьшены и фиксированы для мобильных
+ * Стили для "Дели счёт" — Версия 5.1
+ * Поддержка светлой/тёмной темы, флагов, переключателя
  */
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
 }
 
+/* === CSS-переменные темы === */
+:root {
+    --bg-primary: #f9f9fb;
+    --bg-secondary: #f8f8f8;
+    --text-primary: #333;
+    --text-secondary: #555;
+    --border-color: #d2d2d7;
+    --accent-color: #0071e3;
+    --remove-bg: #ff3b30;
+    --card-bg: white;
+    --shadow: rgba(0, 0, 0, 0.1);
+    --upload-bg: #f8f8ff;
+    --upload-border: #0071e3;
+    --notification-bg: #28a745;
+    --result-bg: #f0f8ff;
+    --result-border: #d0e0ff;
+}
+
+/* Тёмная тема */
+[data-theme="dark"] {
+    --bg-primary: #121212;
+    --bg-secondary: #1e1e1e;
+    --text-primary: #f0f0f0;
+    --text-secondary: #aaa;
+    --border-color: #444;
+    --accent-color: #0a84ff;
+    --remove-bg: #ff453a;
+    --card-bg: #252525;
+    --shadow: rgba(0, 0, 0, 0.3);
+    --upload-bg: #2a2a2a;
+    --upload-border: #0a84ff;
+    --notification-bg: #30c75a;
+    --result-bg: #2d3748;
+    --result-border: #4a5568;
+}
+
+/* === Глобальные стили === */
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background: #f9f9fb;
-    color: #333;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     line-height: 1.6;
     padding: 0;
     margin: 0;
@@ -26,7 +64,7 @@ body {
     position: relative;
 }
 
-/* === Логотип — 250×250 px === */
+/* === Логотип === */
 .app-header {
     text-align: center;
     padding: 30px 0 20px;
@@ -40,7 +78,7 @@ body {
     width: 250px;
     height: 250px;
     border-radius: 20px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+    box-shadow: 0 8px 20px var(--shadow);
     transition: transform 0.3s ease;
     object-fit: cover;
 }
@@ -49,64 +87,72 @@ body {
     transform: scale(1.03);
 }
 
-/* === Переключатель языка с текстом === */
+/* === Переключатель языка === */
 .language-switcher {
     position: absolute;
     top: 20px;
-    right: 20px;
+    right: 40px;
     z-index: 1000;
 }
 
 #lang-toggle {
     background: none;
     border: none;
-    font-size: 16px;
+    font-size: 24px;
     cursor: pointer;
-    color: #666;
-    padding: 8px 12px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease;
+    color: var(--text-primary);
+    transition: transform 0.2s ease;
 }
 
 #lang-toggle:hover {
-    color: #0071e3;
-    transform: scale(1.05);
-}
-
-#lang-text {
-    font-size: 15px;
-    font-weight: 500;
+    transform: scale(1.1);
 }
 
 #lang-menu {
     position: absolute;
-    top: 40px;
+    top: 30px;
     right: 0;
-    background: white;
-    border: 1px solid #d2d2d7;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px var(--shadow);
     z-index: 1000;
     display: none;
 }
 
 #lang-menu button {
     width: 100%;
-    text-align: left;
-    padding: 10px 15px;
+    padding: 14px;
     border: none;
-    background: white;
+    background: var(--card-bg);
+    color: var(--text-primary);
     cursor: pointer;
-    font-size: 16px;
+    font-size: 20px;
+    text-align: center;
     transition: background 0.2s;
 }
 
 #lang-menu button:hover {
-    background: #f5f5f5;
+    background: #3a3a3a;
+}
+
+/* === Переключатель темы === */
+#theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--text-primary);
+    z-index: 1000;
+    transition: transform 0.2s ease;
+}
+
+#theme-toggle:hover {
+    transform: scale(1.1);
 }
 
 /* === Вкладки === */
@@ -121,7 +167,7 @@ body {
     background: #f0f0f0;
     border-radius: 12px;
     padding: 4px;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 6px var(--shadow);
     min-height: 48px;
     scrollbar-width: none;
 }
@@ -136,10 +182,10 @@ body {
     font-size: 16px;
     font-weight: 500;
     text-align: center;
-    background: transparent;
-    border: none;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     border-radius: 9px;
-    color: #555;
+    color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
@@ -147,26 +193,27 @@ body {
 }
 
 .tab-button.active {
-    background: white;
-    color: #0071e3;
+    background: var(--card-bg);
+    color: var(--accent-color);
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
     font-weight: 600;
+    border-color: var(--accent-color);
 }
 
-/* === Формы — универсальные стили === */
+/* === Формы — участники и товары === */
 .participant,
 .item {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 12px;
-    background: #f8f8f8;
-    border: 1px solid #e0e0e0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     margin-bottom: 10px;
+    transition: all 0.3s ease;
 }
 
-/* Поля ввода */
 .participant input,
 .item input,
 .item-name,
@@ -175,20 +222,22 @@ body {
     flex: 1;
     min-width: 100px;
     padding: 10px;
-    border: 1px solid #d2d2d7;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 16px;
     font-family: inherit;
+    background: var(--card-bg);
+    color: var(--text-primary);
 }
 
-/* === Кнопки удаления — маленькие, как галочки === */
+/* === Кнопки удаления === */
 .remove-participant,
 .remove-item {
     width: 28px;
     height: 28px;
     min-width: 28px;
     min-height: 28px;
-    background: #ff3b30;
+    background: var(--remove-bg);
     color: white;
     border: none;
     border-radius: 50%;
@@ -212,14 +261,58 @@ body {
     transform: scale(1.1);
 }
 
-/* === Чаевые — всегда горизонтально === */
+/* === Загрузка чека === */
+#upload-area {
+    text-align: center;
+    padding: 40px 20px;
+    border: 2px dashed var(--upload-border);
+    border-radius: 14px;
+    cursor: pointer;
+    background: var(--upload-bg);
+    transition: all 0.2s ease;
+    margin: 24px 0;
+}
+
+#upload-area:hover {
+    background: #eef4ff;
+    border-color: #005edc;
+}
+
+[data-theme="dark"] #upload-area:hover {
+    background: #3a3a3a;
+    border-color: var(--accent-color);
+}
+
+#upload-area.drag-over {
+    background: var(--upload-bg);
+    border-color: var(--accent-color);
+}
+
+[data-theme="dark"] #upload-area.drag-over {
+    background: #3a3a3a;
+}
+
+#upload-area p {
+    color: var(--text-primary);
+    font-size: 17px;
+    margin: 8px 0;
+}
+
+#receipt-preview img {
+    max-width: 100%;
+    border-radius: 12px;
+    margin-top: 12px;
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+/* === Чаевые === */
 #tip-controls {
     display: flex;
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background: #f8f8f8;
-    border: 1px solid #e0e0e0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     margin: 10px 0;
     flex-wrap: wrap;
@@ -237,20 +330,22 @@ body {
 #tip-fixed-amount {
     width: 90px;
     padding: 12px;
-    border: 1px solid #d2d2d7;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 17px;
+    background: var(--card-bg);
+    color: var(--text-primary);
 }
 
 .or-text {
-    color: #777;
+    color: var(--text-secondary);
     font-weight: 500;
     white-space: nowrap;
 }
 
 /* === Кнопки действия === */
 button {
-    background: #0071e3;
+    background: var(--accent-color);
     color: white;
     border: none;
     padding: 14px 20px;
@@ -262,6 +357,10 @@ button {
 
 button:hover {
     background: #005edc;
+}
+
+[data-theme="dark"] button:hover {
+    background: #0066cc;
 }
 
 button:active {
@@ -290,50 +389,20 @@ button:active {
     display: none;
     margin-top: 24px;
     padding: 28px;
-    background: #f0f8ff;
-    border: 1px solid #d0e0ff;
+    background: var(--result-bg);
+    border: 1px solid var(--result-border);
     border-radius: 14px;
 }
 
 #result-details {
     line-height: 1.9;
     font-size: 17px;
+    color: var(--text-primary);
 }
 
-/* === Сканирование === */
-#scan-qr {
-    background: #5856d6;
-    margin: 24px 0;
-    padding: 18px;
-    width: 100%;
-}
-
-#upload-area {
-    text-align: center;
-    padding: 40px 20px;
-    border: 2px dashed #0071e3;
-    border-radius: 14px;
-    cursor: pointer;
-    background: #f8f8ff;
-    transition: all 0.2s;
-}
-
-#upload-area:hover {
-    background: #eef4ff;
-    border-color: #005edc;
-}
-
-#upload-area p {
-    color: #555;
-    font-size: 17px;
-    margin: 8px 0;
-}
-
-#receipt-preview img {
-    max-width: 100%;
-    border-radius: 12px;
-    margin-top: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+#result-details hr {
+    border: 1px solid var(--border-color);
+    margin: 10px 0;
 }
 
 /* === Уведомления === */
@@ -349,9 +418,10 @@ button:active {
     font-size: 15px;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,0.2);
+    transition: opacity 0.3s ease;
 }
 
-/* === Скрытие табов === */
+/* === Скрытие вкладок === */
 .tab-content {
     display: none;
 }
@@ -384,38 +454,13 @@ button:active {
         border-radius: 6px;
     }
 
-    /* === ГАРАНТИРОВАННЫЙ ФИКС КНОПОК УДАЛЕНИЯ НА МОБИЛЬНЫХ === */
     .remove-participant,
     .remove-item {
-        all: unset !important;
         width: 26px !important;
         height: 26px !important;
-        min-width: 26px !important;
-        min-height: 26px !important;
-        background: #ff3b30 !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 50% !important;
         font-size: 16px !important;
-        font-weight: bold !important;
-        line-height: 1 !important;
-        text-align: center !important;
-        cursor: pointer !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        margin-left: 6px !important;
-        padding: 0 !important;
-        transition: background 0.2s, transform 0.1s !important;
     }
 
-    .remove-participant:hover,
-    .remove-item:hover {
-        background: #d63031 !important;
-        transform: scale(1.1) !important;
-    }
-
-    /* Формы */
     .participant,
     .item {
         padding: 10px;
@@ -429,7 +474,6 @@ button:active {
         padding: 14px;
     }
 
-    /* === Дополнительный фикс на очень малых экранах === */
     @media (max-width: 480px) {
         #logo-img {
             width: 200px;
@@ -442,12 +486,14 @@ button:active {
         }
 
         #lang-toggle {
-            font-size: 14px;
+            font-size: 20px;
             padding: 6px 10px;
         }
 
-        #lang-text {
-            font-size: 13px;
+        #theme-toggle {
+            top: 12px;
+            right: 10px;
+            font-size: 18px;
         }
 
         .remove-participant,
@@ -456,5 +502,20 @@ button:active {
             height: 24px !important;
             font-size: 15px !important;
         }
+    }
+}
+
+/* === Автоопределение темы по системе === */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: #121212;
+        --bg-secondary: #1e1e1e;
+        --text-primary: #f0f0f0;
+        --text-secondary: #aaa;
+        --border-color: #444;
+        --card-bg: #252525;
+        --upload-bg: #2a2a2a;
+        --result-bg: #2d3748;
+        --result-border: #4a5568;
     }
 }

@@ -1,5 +1,5 @@
-// frontend/app.js — "Дели счёт" (Версия 5.2)
-// Только ручное переключение темы, кнопка слева
+// frontend/app.js — "Дели счёт" (Версия 5.3)
+// Исправлены: позиция, кликабельность, стабильность переключателей
 // Автор: GigaCode
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        if (!receipt-preview) {
+        if (!receiptPreview) {
             console.error('❌ #receipt-preview не найден');
             return;
         }
@@ -529,11 +529,15 @@ document.addEventListener('DOMContentLoaded', function () {
         updateDonateLink();
     }
 
-    // --- 12. ТЕМНАЯ ТЕМА — ТОЛЬКО РУЧНОЕ ПЕРЕКЛЮЧЕНИЕ (БЕЗ AUTO) ---
+    // --- 12. ТЕМНАЯ ТЕМА — ИСПРАВЛЕНА: КЛИК, ПОЗИЦИЯ, СТИЛЬ ---
     function setupThemeToggle() {
         const toggle = document.getElementById('theme-toggle');
 
-        // Только из localStorage, без prefers-color-scheme
+        if (!toggle) {
+            console.error('❌ #theme-toggle не найден в DOM');
+            return;
+        }
+
         const savedTheme = localStorage.getItem('appTheme') || 'light';
 
         if (savedTheme === 'dark') {
@@ -544,7 +548,10 @@ document.addEventListener('DOMContentLoaded', function () {
             toggle.textContent = '🌞';
         }
 
-        toggle.addEventListener('click', () => {
+        // Главное: делаем активным!
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
             const newTheme = isDark ? 'light' : 'dark';
 
@@ -557,6 +564,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 toggle.textContent = '🌞';
                 localStorage.setItem('appTheme', 'light');
             }
+
+            console.log('🌙 Тема переключена:', newTheme);
         });
     }
 
@@ -565,7 +574,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setupLanguageSwitcher();
     setupFileUpload();
     setupQRScanner();
-    setupThemeToggle();  // Кнопка слева, только ручной режим
+    setupThemeToggle();  // Кнопка слева — исправлена!
     addParticipant();
     translatePage();
 
@@ -574,6 +583,6 @@ document.addEventListener('DOMContentLoaded', function () {
     script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
     script.async = true;
     script.onload = () => console.log('✅ jsQR успешно загружен');
-    script.onerror = () => console.error('❌ Не удалось загрузить jsQR');
+    script.onerror = () => console.error('❌ Ошибка загрузки jsQR');
     document.head.appendChild(script);
 });

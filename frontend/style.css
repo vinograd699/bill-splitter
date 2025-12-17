@@ -1,6 +1,6 @@
 /*
  * Стили для "Дели счёт" — Разделение чека
- * Версия 4.3 — Язык виден, чаевые горизонтально
+ * Версия 4.4 — Кнопки удаления уменьшены до размера чекбоксов
  */
 
 * {
@@ -155,52 +155,72 @@ body {
 
 /* === Формы — универсальные стили === */
 .participant,
-.item,
-#tip-controls {
-    padding: 16px;
+.item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
     background: #f8f8f8;
     border: 1px solid #e0e0e0;
     border-radius: 10px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
+/* Поля ввода */
 .participant input,
 .item input,
 .item-name,
 .item-price,
 .item-quantity {
     flex: 1;
-    min-width: 120px;
-    padding: 12px;
+    min-width: 100px;
+    padding: 10px;
     border: 1px solid #d2d2d7;
     border-radius: 8px;
-    font-size: 17px;
+    font-size: 16px;
     font-family: inherit;
 }
 
+/* === Кнопки удаления — маленькие, как галочки === */
 .remove-participant,
 .remove-item {
+    width: 28px;
+    height: 28px;
     background: #ff3b30;
     color: white;
     border: none;
-    padding: 10px 14px;
-    font-size: 16px;
-    border-radius: 8px;
+    border-radius: 50%;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1;
+    text-align: center;
     cursor: pointer;
-    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin-left: 6px;
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.remove-participant:hover,
+.remove-item:hover {
+    background: #d63031;
+    transform: scale(1.1);
 }
 
 /* === Чаевые — всегда горизонтально === */
 #tip-controls {
-    display: flex !important;
-    align-items: center !important;
-    gap: 16px !important;
-    padding: 16px !important;
-    background: #f8f8f8 !important;
-    border: 1px solid #e0e0e0 !important;
-    border-radius: 10px !important;
-    margin: 10px 0 !important;
-    flex-wrap: wrap !important;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: #f8f8f8;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    margin: 10px 0;
+    flex-wrap: wrap;
 }
 
 #tip-percent,
@@ -226,7 +246,7 @@ body {
     white-space: nowrap;
 }
 
-/* === Кнопки === */
+/* === Кнопки действия === */
 button {
     background: #0071e3;
     color: white;
@@ -340,12 +360,17 @@ button:active {
 
 /* === Адаптивность для мобильных === */
 @media (max-width: 768px) {
+    .app-header {
+        padding: 20px 0 16px;
+    }
+
     .tab-button {
         font-size: 12.8px;
-        padding: 11.2px 12.8px;
+        padding: 11.2px 10px;
         min-width: 88px;
     }
 
+    /* Уменьшаем поля ввода */
     input[type="text"],
     input[type="number"],
     .item-name,
@@ -353,45 +378,51 @@ button:active {
     .item-quantity,
     #tip-amount,
     #tip-fixed-amount {
-        font-size: 13.6px;
-        padding: 9.6px;
-        border-radius: 6.4px;
+        font-size: 14px;
+        padding: 9px;
+        border-radius: 6px;
     }
 
-    button,
+    /* Кнопки удаления — на мобильных */
     .remove-participant,
     .remove-item {
-        font-size: 13.6px;
-        padding: 11.2px 16px;
+        width: 26px;
+        height: 26px;
+        font-size: 16px;
     }
 
+    /* Формы */
     .participant,
-    .item,
-    #tip-controls {
-        padding: 12.8px;
-        margin-bottom: 9.6px;
+    .item {
+        padding: 10px;
+        gap: 8px;
+        flex-wrap: wrap;
     }
 
-    #tip-controls {
-        flex-direction: row !important;
-        align-items: center !important;
-        gap: 12.8px !important;
-        flex-wrap: wrap !important;
-    }
-
-    #lang-toggle {
-        font-size: 14px;
-        padding: 6px 10px;
-    }
-
-    #lang-text {
-        font-size: 13px;
+    #add-participant-btn,
+    #calculate-btn {
+        font-size: 16px;
+        padding: 14px;
     }
 
     @media (max-width: 480px) {
         #logo-img {
             width: 200px;
             height: 200px;
+        }
+
+        .language-switcher {
+            top: 12px;
+            right: 12px;
+        }
+
+        #lang-toggle {
+            font-size: 14px;
+            padding: 6px 10px;
+        }
+
+        #lang-text {
+            font-size: 13px;
         }
     }
 }

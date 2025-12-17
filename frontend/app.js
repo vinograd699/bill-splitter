@@ -1,338 +1,537 @@
-// === Глобальные переменные ===
-let participants = [];
-let items = [];
-let currentLang = localStorage.getItem('lang') || 'ru';
+// frontend/app.js — Полная рабочая версия (Версия 3.2)
+// Платим вместе — Разделение счёта
 
-// === Переводы ===
-const translations = {
-    ru: {
-        scan: 'Сканировать',
-        calculate: 'Рассчитать',
-        about: 'О проекте',
-        scan_qr: '📷 Сканировать QR-код чека',
-        upload_prompt: 'Выберите файл или перетащите его сюда',
-        participants: 'Участники',
-        add_participant: '+ Добавить участника',
-        items: 'Товары',
-        add_item: '+ Добавить товар',
-        tips: 'Чаевые',
-        calculate_btn: 'Рассчитать',
-        result: 'К оплате:',
-        support: '💙 Поддержать проект',
-        or: 'или'
-    },
-    en: {
-        scan: 'Scan',
-        calculate: 'Calculate',
-        about: 'About',
-        scan_qr: '📷 Scan receipt QR code',
-        upload_prompt: 'Choose a file or drag it here',
-        participants: 'Participants',
-        add_participant: '+ Add participant',
-        items: 'Items',
-        add_item: '+ Add item',
-        tips: 'Tips',
-        calculate_btn: 'Calculate',
-        result: 'To pay:',
-        support: '💙 Support project',
-        or: 'or'
-    }
-};
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('✅ DOM загружен — инициализация приложения');
 
-// === Обновление языка ===
-function updateLanguage() {
-    const lang = localStorage.getItem('lang') || 'ru';
-    currentLang = lang;
+    // --- 1. ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ---
+    function setupTabs() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
 
-    // Обновляем тексты
-    document.querySelectorAll('[data-lang-text]').forEach(el => {
-        const key = el.getAttribute('data-lang-text');
-        if (translations[lang] && translations[lang][key]) {
-            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                el.placeholder = translations[lang][key];
-            } else {
-                el.textContent = translations[lang][key];
-            }
-        }
-    });
-
-    // Обновляем текст на кнопке переключения языка
-    document.getElementById('lang-text').textContent = lang === 'ru' ? 'Рус' : 'Eng';
-
-    // Обновляем вкладки
-    document.querySelector('[data-tab="scan"]').textContent = translations[lang].scan;
-    document.querySelector('[data-tab="calculate"]').textContent = translations[lang].calculate;
-    document.querySelector('[data-tab="about"]').textContent = translations[lang].about;
-}
-
-// === Инициализация при загрузке ===
-document.addEventListener('DOMContentLoaded', () => {
-    // Устанавливаем язык
-    const savedLang = localStorage.getItem('lang') || 'ru';
-    document.getElementById('lang-text').textContent = savedLang === 'ru' ? 'Рус' : 'Eng';
-    updateLanguage();
-
-    // === Переключение языка ===
-    const langToggle = document.getElementById('lang-toggle');
-    const langMenu = document.getElementById('lang-menu');
-
-    langToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        langMenu.style.display = langMenu.style.display === 'block' ? 'none' : 'block';
-    });
-
-    document.addEventListener('click', () => {
-        langMenu.style.display = 'none';
-    });
-
-    langMenu.addEventListener('click', (e) => e.stopPropagation());
-
-    document.querySelectorAll('#lang-menu button').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const newLang = btn.getAttribute('data-lang');
-            localStorage.setItem('lang', newLang);
-            updateLanguage();
-            langMenu.style.display = 'none';
-        });
-    });
-
-    // === Вкладки ===
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById(btn.getAttribute('data-tab')).classList.add('active');
-        });
-    });
-
-    // === Участники ===
-    const participantsContainer = document.getElementById('participants-container');
-    const addParticipantBtn = document.getElementById('add-participant-btn');
-
-    function addParticipant(name = '') {
-        const div = document.createElement('div');
-        div.className = 'participant';
-
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.placeholder = 'Имя участника';
-        input.value = name;
-        input.setAttribute('data-lang-text', 'participant_placeholder');
-
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = '×';
-        removeBtn.className = 'remove-participant';
-        removeBtn.type = 'button';
-
-        removeBtn.addEventListener('click', () => {
-            participantsContainer.removeChild(div);
-            updateItemsConsumers();
+        // Изначально скрываем все, кроме активной
+        tabContents.forEach(tab => {
+            tab.style.display = tab.classList.contains('active') ? 'block' : 'none';
         });
 
-        div.appendChild(input);
-        div.appendChild(removeBtn);
-        participantsContainer.appendChild(div);
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const tabName = this.dataset.tab;
+                console.log('📌 Переключение на вкладку:', tabName);
 
-        updateItemsConsumers();
-    }
+                // Обновляем кнопки
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
 
-    addParticipantBtn.addEventListener('click', () => {
-        addParticipant();
-    });
+                // Скрываем все вкладки
+                tabContents.forEach(tab => {
+                    tab.style.display = 'none';
+                });
 
-    // === Товары ===
-    const itemsContainer = document.getElementById('items-container');
-    const addItemBtn = document.getElementById('add-item-btn');
-
-    function addItem(name = '', price = '', quantity = '') {
-        const div = document.createElement('div');
-        div.className = 'item';
-
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.className = 'item-name';
-        nameInput.placeholder = 'Название товара';
-        nameInput.value = name;
-
-        const priceInput = document.createElement('input');
-        priceInput.type = 'number';
-        priceInput.className = 'item-price';
-        priceInput.placeholder = 'Цена';
-        priceInput.value = price;
-        priceInput.min = '0';
-        priceInput.step = '0.01';
-
-        const quantityInput = document.createElement('input');
-        quantityInput.type = 'number';
-        quantityInput.className = 'item-quantity';
-        quantityInput.placeholder = 'Кол-во';
-        quantityInput.value = quantity || '1';
-        quantityInput.min = '1';
-
-        const totalDisplay = document.createElement('div');
-        totalDisplay.className = 'item-total';
-        totalDisplay.textContent = '0 ₽';
-
-        const consumersDiv = document.createElement('div');
-        consumersDiv.className = 'item-consumers';
-
-        function updateTotal() {
-            const price = parseFloat(priceInput.value) || 0;
-            const qty = parseInt(quantityInput.value) || 1;
-            totalDisplay.textContent = (price * qty).toFixed(2) + ' ₽';
-        }
-
-        priceInput.addEventListener('input', updateTotal);
-        quantityInput.addEventListener('input', updateTotal);
-
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = '×';
-        removeBtn.className = 'remove-item';
-        removeBtn.type = 'button';
-        removeBtn.addEventListener('click', () => {
-            itemsContainer.removeChild(div);
-        });
-
-        div.appendChild(nameInput);
-        div.appendChild(priceInput);
-        div.appendChild(quantityInput);
-        div.appendChild(totalDisplay);
-        div.appendChild(consumersDiv);
-        div.appendChild(removeBtn);
-
-        itemsContainer.appendChild(div);
-        updateTotal();
-        updateItemsConsumers();
-    }
-
-    addItemBtn.addEventListener('click', () => {
-        addItem();
-    });
-
-    function updateItemsConsumers() {
-        document.querySelectorAll('.item').forEach(itemDiv => {
-            const consumersDiv = itemDiv.querySelector('.item-consumers');
-            consumersDiv.innerHTML = '';
-            consumersDiv.insertAdjacentHTML('beforeend', `<strong>Кто ел:</strong><br>`);
-
-            participantsContainer.querySelectorAll('input').forEach(input => {
-                if (input.value.trim() === '') return;
-
-                const label = document.createElement('label');
-                label.innerHTML = `
-                    <input type="checkbox" checked> ${input.value}
-                `;
-                consumersDiv.appendChild(label);
+                // Показываем нужную
+                const targetTab = document.getElementById(`${tabName}-tab`);
+                if (targetTab) {
+                    targetTab.style.display = 'block';
+                } else {
+                    console.error('❌ Вкладка не найдена:', `${tabName}-tab`);
+                }
             });
         });
     }
 
-    // === Расчёт ===
-    document.getElementById('calculate-btn').addEventListener('click', () => {
-        const tipPercent = parseFloat(document.getElementById('tip-amount').value) || 0;
-        const tipFixed = parseFloat(document.getElementById('tip-fixed-amount').value) || 0;
+    // --- 2. УЧАСТНИКИ ---
+    window.addParticipant = function () {
+        const container = document.getElementById('participants-container');
+        const count = container.children.length + 1;
 
-        let totalBill = 0;
-        const participantSums = {};
+        const el = document.createElement('div');
+        el.className = 'participant';
+        el.innerHTML = `
+            <input type="text" class="participant-name" value="Участник ${count}" required>
+            <button type="button" class="remove-participant" onclick="removeParticipant(this)">×</button>
+        `;
+        container.appendChild(el);
 
-        participantsContainer.querySelectorAll('.participant input').forEach(input => {
-            const name = input.value.trim();
-            if (name) participantSums[name] = 0;
+        // Обновляем чекбоксы у товаров
+        el.querySelector('.participant-name').addEventListener('input', updateConsumerCheckboxes);
+        updateConsumerCheckboxes();
+    };
+
+    window.removeParticipant = function (button) {
+        button.closest('.participant').remove();
+        updateConsumerCheckboxes();
+    };
+
+    function updateConsumerCheckboxes() {
+        const participants = Array.from(document.querySelectorAll('#participants-container .participant'))
+            .map(p => p.querySelector('.participant-name').value.trim())
+            .filter(name => name);
+
+        document.querySelectorAll('.item-consumers').forEach(container => {
+            container.innerHTML = participants.map(name => `
+                <label><input type="checkbox" checked> ${escapeHtml(name)}</label>
+            `).join('');
+        });
+    }
+
+    // --- 3. СКАНИРОВАНИЕ QR-КОДА ---
+    function setupQRScanner() {
+        const scanButton = document.getElementById('scan-qr');
+        if (!scanButton) {
+            console.error('❌ Элемент #scan-qr не найден');
+            return;
+        }
+
+        scanButton.addEventListener('click', async () => {
+            console.log('📸 Кнопка "Сканировать QR-код" нажата');
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                console.log('✅ Доступ к камере получен');
+
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.autoplay = true;
+                video.playsInline = true;
+                video.style.width = '100%';
+                video.style.maxWidth = '400px';
+                video.style.borderRadius = '12px';
+                video.style.margin = '10px auto';
+                video.style.display = 'block';
+
+                const container = document.getElementById('upload-area');
+                container.innerHTML = '<p style="color: #0071e3; margin: 10px 0;">🔍 Наведите камеру на QR-код</p>';
+                container.appendChild(video);
+
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+                const scanLoop = setInterval(() => {
+                    if (video.videoWidth === 0) return;
+
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    if (typeof jsQR === 'undefined') {
+                        console.warn('🟡 Ожидание загрузки jsQR...');
+                        return;
+                    }
+
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, canvas.width, canvas.height);
+
+                    if (code) {
+                        clearInterval(scanLoop);
+                        stopStream(stream);
+                        console.log('✅ QR-код распознан:', code.data);
+                        parseQRUrl(code.data);
+                    }
+                }, 500);
+
+            } catch (err) {
+                console.error('❌ Ошибка камеры:', err);
+                let errorMsg = 'Неизвестная ошибка';
+                if (err.name === 'NotAllowedError') {
+                    errorMsg = '❌ Доступ к камере запрещён';
+                } else if (err.name === 'NotFoundError') {
+                    errorMsg = '❌ Камера не найдена';
+                } else if (err.name === 'NotReadableError') {
+                    errorMsg = '❌ Камера занята (например, другим приложением)';
+                } else if (err.name === 'NotSupportedError') {
+                    errorMsg = '❌ Требуется безопасное соединение (HTTPS или localhost)';
+                }
+
+                document.getElementById('upload-area').innerHTML = `<p style="color: red;">${errorMsg}</p>`;
+                alert(errorMsg);
+            }
+        });
+    }
+
+    // Остановка видео-потока
+    function stopStream(stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+
+    // Разбор QR-URL (из чека)
+    function parseQRUrl(qrData) {
+        console.log('📝 Обработка QR-данных:', qrData);
+
+        try {
+            // Поддержка разных форматов: URL или "t=...&fn=..."
+            const raw = qrData.includes('?') ? qrData.split('?')[1] : qrData;
+            const params = new URLSearchParams(raw);
+
+            const fn = params.get('fn');
+            const i = params.get('i') || params.get('fd');
+            const fp = params.get('fp');
+            const t = params.get('t');
+            const s = params.get('s');
+
+            if (!fn || !i || !fp || !t || !s) {
+                alert('❌ QR-код не содержит необходимых данных');
+                console.warn('Отсутствуют параметры:', { fn, i, fp, t, s });
+                return;
+            }
+
+            // Обрезаем t, если слишком длинный
+            const formattedT = t.length > 13 ? t.substring(0, 13) : t;
+
+            // Попробуем запросить чек с сервера
+            fetchCheckFromAPI(fn, i, fp, formattedT, s);
+        } catch (err) {
+            console.error('❌ Ошибка парсинга QR:', err);
+            alert('❌ Не удалось распознать QR-код');
+        }
+    }
+
+    // Запрос к серверу для получения чека
+    async function fetchCheckFromAPI(fn, fd, fp, t, s) {
+        const container = document.getElementById('upload-area');
+        container.innerHTML = '<div class="loading">📥 Получение чека...</div>';
+
+        try {
+            const response = await fetch('https://delischet.ru/api/check', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ fn, fd, fp, t, s })
+            });
+
+            const text = await response.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                alert('❌ Ответ сервера не JSON');
+                container.innerHTML = '<p>❌ Ошибка ответа</p>';
+                return;
+            }
+
+            if (data.code !== 1 || !data.data?.json) {
+                throw new Error(data.msg || 'Чек не найден');
+            }
+
+            const items = data.data.json.items.map(item => ({
+                name: item.name.trim(),
+                price: parseFloat((item.price / 100).toFixed(2)),
+                quantity: item.quantity
+            }));
+
+            fillItemsFromCheck(items);
+            showNotification('✅ Чек загружен', 'success');
+            container.innerHTML = '<p style="color: green;">✅ Чек успешно загружен</p>';
+
+        } catch (err) {
+            console.error('❌ Ошибка загрузки чека:', err);
+            showNotification('❌ ' + err.message, 'error');
+            container.innerHTML = `<p style="color: red;">❌ ${err.message}</p>`;
+        }
+    }
+
+    // Заполняем товары из чека
+    function fillItemsFromCheck(items) {
+        const container = document.getElementById('items-container');
+        container.innerHTML = '';
+
+        items.forEach(item => {
+            const total = (item.price * item.quantity).toFixed(2);
+            const el = document.createElement('div');
+            el.className = 'item';
+            el.innerHTML = `
+                <input type="text" class="item-name" value="${escapeHtml(item.name)}" required>
+                <input type="number" class="item-price" value="${item.price}" step="0.01" required>
+                <input type="number" class="item-quantity" value="${item.quantity}" min="1" step="1" style="width: 60px;">
+                <span class="item-total"><b>= ${total} ₽</b></span>
+                <div class="item-consumers"></div>
+                <button type="button" class="remove-item" onclick="removeItem(this)">×</button>
+            `;
+            container.appendChild(el);
         });
 
-        itemsContainer.querySelectorAll('.item').forEach(item => {
-            const price = parseFloat(item.querySelector('.item-price').value) || 0;
-            const qty = parseInt(item.querySelector('.item-quantity').value) || 1;
-            const itemTotal = price * qty;
-            totalBill += itemTotal;
+        updateConsumerCheckboxes();
+    }
 
-            const checkboxes = item.querySelectorAll('.item-consumers input[type="checkbox"]:checked');
-            const names = Array.from(checkboxes).map(cb => cb.nextSibling.textContent.trim());
-            const count = names.length || 1;
+    // --- 4. ПЕРЕКЛЮЧЕНИЕ ЯЗЫКА ---
+    function setupLanguageSwitcher() {
+        const toggle = document.getElementById('lang-toggle');
+        const menu = document.getElementById('lang-menu');
 
-            names.forEach(name => {
-                if (participantSums[name] !== undefined) {
-                    participantSums[name] += itemTotal / count;
+        if (!toggle || !menu) {
+            console.error('❌ Элементы переключателя языка не найдены');
+            return;
+        }
+
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        });
+
+        document.addEventListener('click', () => {
+            menu.style.display = 'none';
+        });
+
+        menu.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                const lang = e.target.dataset.lang;
+                if (lang) {
+                    localStorage.setItem('appLang', lang);
+                    console.log('🌐 Язык изменён:', lang);
+                    translatePage(lang);
+                    menu.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    // Перевод интерфейса
+    function translatePage(lang = localStorage.getItem('appLang') || 'ru') {
+        console.log('🔄 Перевод на:', lang);
+
+        const t = {
+            ru: {
+                scan: 'Сканировать чек',
+                calculate: 'Рассчитать счёт',
+                about: 'О проекте',
+                scanPrompt: 'Загрузите чек',
+                scanButton: '📷 Сканировать QR-код',
+                uploadPrompt: '📁 Перетащите изображение или нажмите, чтобы выбрать',
+                participants: 'Участники',
+                addParticipant: '+ Добавить участника',
+                items: 'Товары',
+                tips: 'Чаевые',
+                calculateBtn: 'Рассчитать счёт',
+                result: 'Результат',
+                aboutDesc1: '<strong>"Дели счёт"</strong> — это удобное приложение для разделения счёта между друзьями, семьёй или коллегами после совместной покупки или обеда.',
+                aboutDesc2: 'Просто <strong>отсканируйте QR-код чека</strong> — приложение автоматически извлечёт список товаров, цены и количество. Затем укажите, кто за что платит, и <strong>"Дели счёт"</strong> рассчитает, сколько должен каждый участник.',
+                aboutDesc3: 'Больше не нужно считать в уме, делить на калькуляторе или спорить — всё честно, быстро и точно.',
+                feedback: 'Обратная связь',
+                developer: 'Разработчик: Виноградов Павел',
+                email: 'Почта: vinograd699@gmail.com',
+                version: '© 2025 "Дели счёт". Все права защищены.',
+                donateTitle: 'Поддержите проект 💙',
+                donateDesc: 'Помогите развивать «Дели счёт» — любой вклад важен!',
+                donateLabel: '₽',
+                donateBtn: '💸 Поддержать через ЮMoney',
+                donateFooter: 'Без комиссии • Через СБП • Защищено ЮMoney'
+            },
+            en: {
+                scan: 'Scan Receipt',
+                calculate: 'Calculate Bill',
+                about: 'About',
+                scanPrompt: 'Upload receipt',
+                scanButton: '📷 Scan QR Code',
+                uploadPrompt: '📁 Drag image or click to select',
+                participants: 'Participants',
+                addParticipant: '+ Add Participant',
+                items: 'Items',
+                tips: 'Tips',
+                calculateBtn: 'Calculate Bill',
+                result: 'Result',
+                aboutDesc1: '<strong>"Split the bill"</strong> is a convenient app to split bills among friends, family, or colleagues after a meal or shopping.',
+                aboutDesc2: 'Just <strong>scan the receipt QR code</strong> — the app will automatically extract the list of items, prices, and quantities. Then specify who pays for what, and <strong>«"Split the bill"</strong> will calculate how much each person owes.',
+                aboutDesc3: 'No more mental math, calculator fights, or arguments — everything is fair, fast, and accurate.',
+                feedback: 'Feedback',
+                developer: 'Developer: Vinogradov Pavel',
+                email: 'Email: vinograd699@gmail.com',
+                version: '© 2025 "Split the bill". All rights reserved.',
+                donateTitle: 'Support the project 💙',
+                donateDesc: 'Help us develop "Split the bill" — every contribution matters!',
+                donateLabel: '₽',
+                donateBtn: '💸 Support via YooMoney',
+                donateFooter: 'No fees • Via SBP • Protected by YooMoney'
+            }
+        }[lang] || t.ru;
+
+        function setText(id, text, method = 'textContent') {
+            const el = document.getElementById(id);
+            if (el) el[method] = text;
+            else console.warn('⚠️ Элемент не найден:', id);
+        }
+
+        setText('tab-scan', t.scan);
+        setText('tab-calculate', t.calculate);
+        setText('tab-about', t.about);
+        setText('label-scan-prompt', t.scanPrompt);
+        setText('scan-qr', t.scanButton);
+        setText('upload-prompt', t.uploadPrompt);
+        setText('label-participants', t.participants);
+        setText('add-participant-btn', t.addParticipant);
+        setText('label-items', t.items);
+        setText('label-tips', t.tips);
+        setText('calculate-btn', t.calculateBtn);
+        setText('label-about', t.about);
+        setText('feedback-label', t.feedback);
+        setText('about-desc-1', t.aboutDesc1, 'innerHTML');
+        setText('about-desc-2', t.aboutDesc2, 'innerHTML');
+        setText('about-desc-3', t.aboutDesc3);
+        setText('developer-info', `${t.developer}<br><a href="mailto:vinograd699@gmail.com">${t.email}</a>`, 'innerHTML');
+        setText('version-info', t.version);
+    }
+
+    // --- 5. РАСЧЁТ СЧЁТА ---
+    document.getElementById('bill-form')?.addEventListener('submit', function (e) {
+        e.preventDefault();
+        console.log('🧮 Расчёт счёта');
+
+        const participants = Array.from(document.querySelectorAll('#participants-container .participant-name'))
+            .map(el => el.value.trim())
+            .filter(name => name);
+
+        if (participants.length === 0) {
+            showNotification('❌ Нет участников', 'error');
+            return;
+        }
+
+        const items = Array.from(document.querySelectorAll('#items-container .item')).map(el => {
+            const name = el.querySelector('.item-name').value;
+            const price = parseFloat(el.querySelector('.item-price').value) || 0;
+            const quantity = parseFloat(el.querySelector('.item-quantity').value) || 0;
+            const consumers = Array.from(el.querySelectorAll('.item-consumers input:checked'))
+                .map(cb => cb.parentElement.textContent.trim());
+
+            return { name, price, quantity, consumers };
+        });
+
+        const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        let tip = 0;
+        const tipPercent = document.getElementById('tip-percent').checked;
+        if (tipPercent) {
+            const percent = parseFloat(document.getElementById('tip-amount').value) || 0;
+            tip = (subtotal * percent) / 100;
+        } else {
+            tip = parseFloat(document.getElementById('tip-fixed-amount').value) || 0;
+        }
+
+        const totalWithTip = subtotal + tip;
+        const tipPerPerson = tip / participants.length;
+
+        const totals = {};
+        participants.forEach(name => totals[name] = 0);
+
+        items.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            const share = item.consumers.length > 0 ? itemTotal / item.consumers.length : 0;
+            item.consumers.forEach(name => {
+                if (totals.hasOwnProperty(name)) {
+                    totals[name] += share;
                 }
             });
         });
 
-        const tip = tipFixed > 0 ? tipFixed : (totalBill * tipPercent) / 100;
-        const totalWithTip = totalBill + tip;
-
-        // Распределяем чаевые пропорционально
-        let sumWithoutTip = Object.values(participantSums).reduce((a, b) => a + b, 0);
-        if (sumWithoutTip > 0) {
-            Object.keys(participantSums).forEach(name => {
-                const share = participantSums[name] / sumWithoutTip;
-                participantSums[name] += tip * share;
-            });
-        }
-
-        const resultDiv = document.getElementById('result');
-        const detailsDiv = document.getElementById('result-details');
-        detailsDiv.innerHTML = '';
-
-        Object.keys(participantSums).forEach(name => {
-            if (name) {
-                const p = document.createElement('p');
-                p.textContent = `${name}: ${participantSums[name].toFixed(2)} ₽`;
-                detailsDiv.appendChild(p);
-            }
+        participants.forEach(name => {
+            totals[name] += tipPerPerson;
         });
 
-        const totalP = document.createElement('p');
-        totalP.innerHTML = `<strong>Итого: ${totalWithTip.toFixed(2)} ₽</strong>`;
-        detailsDiv.appendChild(totalP);
+        // Округление
+        Object.keys(totals).forEach(name => {
+            totals[name] = Math.round(totals[name] * 100) / 100;
+        });
 
-        resultDiv.style.display = 'block';
+        showResult(totals, { subtotal, tip, total: totalWithTip });
     });
 
-    // === Сканирование QR-кода (заглушка) ===
-    document.getElementById('scan-qr').addEventListener('click', () => {
-        alert('Сканирование QR-кода временно недоступно. Используйте ручной ввод.');
-    });
+    // Показ результата
+    function showResult(totals, breakdown) {
+        const result = document.getElementById('result');
+        const details = document.getElementById('result-details');
+        result.style.display = 'block';
+        details.innerHTML = '';
 
-    // Загрузка файла
-    const uploadArea = document.getElementById('upload-area');
-    const receiptPreview = document.getElementById('receipt-preview');
+        const lang = localStorage.getItem('appLang') || 'ru';
+        const t = lang === 'en'
+            ? { subtotal: 'Subtotal:', tip: 'Tip:', total: 'Total:', toPay: 'To pay:' }
+            : { subtotal: 'Сумма без чаевых:', tip: 'Чаевые:', total: 'Итого:', toPay: 'К оплате:' };
 
-    uploadArea.addEventListener('click', () => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.onchange = e => {
-            const file = e.target.files[0];
-            if (file) {
-                const url = URL.createObjectURL(file);
-                receiptPreview.innerHTML = `<img src="${url}" alt="Чек">`;
-            }
+        const addLine = (label, value) => {
+            const div = document.createElement('div');
+            div.innerHTML = `<b>${label}</b> ${value.toFixed(2)} ₽`;
+            details.appendChild(div);
         };
-        input.click();
-    });
 
-    // Перетаскивание
-    uploadArea.addEventListener('dragover', e => {
-        e.preventDefault();
-        uploadArea.style.background = '#eef4ff';
-    });
+        addLine(t.subtotal, breakdown.subtotal);
+        addLine(t.tip, breakdown.tip);
+        const hr = document.createElement('hr');
+        details.appendChild(hr);
+        addLine(t.total, breakdown.total);
 
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.style.background = '#f8f8ff';
-    });
+        Object.keys(totals).forEach(name => {
+            const div = document.createElement('div');
+            div.textContent = `${name}: ${totals[name]} ₽`;
+            div.style.fontSize = '18px';
+            details.appendChild(div);
+        });
 
-    uploadArea.addEventListener('drop', e => {
-        e.preventDefault();
-        uploadArea.style.background = '#f8f8ff';
-        const file = e.dataTransfer.files[0];
-        if (file) {
-            const url = URL.createObjectURL(file);
-            receiptPreview.innerHTML = `<img src="${url}" alt="Чек">`;
+        const totalAll = Object.values(totals).reduce((a, b) => a + b, 0);
+        const final = document.createElement('div');
+        final.innerHTML = `<b>${t.toPay} ${totalAll.toFixed(2)} ₽</b>`;
+        final.style.color = '#0071e3';
+        final.style.marginTop = '10px';
+        details.appendChild(final);
+
+        showNotification(lang === 'en' ? '✅ Bill calculated!' : '✅ Счёт рассчитан!', 'success');
+    }
+
+    // --- 6. УВЕДОМЛЕНИЯ ---
+    function showNotification(message, type) {
+        const n = document.createElement('div');
+        n.className = `notification ${type}`;
+        n.textContent = message;
+        n.style.cssText = `
+            position: fixed; top: 30px; right: 30px; padding: 14px 20px;
+            border-radius: 10px; background: ${type === 'success' ? '#28a745' : '#dc3545'};
+            color: white; z-index: 10000; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            font-size: 14px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);
+            opacity: 1; transition: opacity 0.3s;
+        `;
+        document.body.appendChild(n);
+        setTimeout(() => {
+            n.style.opacity = '0';
+            setTimeout(() => n.remove(), 300);
+        }, 5000);
+    }
+
+    // --- 7. УДАЛЕНИЕ ТОВАРА ---
+    window.removeItem = function (button) {
+        button.closest('.item').remove();
+    };
+
+    // --- 8. ЭКРАНИРОВАНИЕ HTML ---
+    function escapeHtml(s) {
+        return s.toString()
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    // --- 9. ДОНАТЫ — ПОДСТАНОВКА СУММЫ В ССЫЛКУ ---
+    const donateAmount = document.getElementById('donate-amount');
+    const donateButton = document.getElementById('donate-button');
+
+    if (donateAmount && donateButton) {
+        function updateDonateLink() {
+            const amount = parseFloat(donateAmount.value) || 100;
+            donateButton.href = `https://yoomoney.ru/to/4100119432123264/${amount}`;
         }
-    });
 
-    // Инициализация: добавляем одного участника по умолчанию
+        donateAmount.addEventListener('input', updateDonateLink);
+        updateDonateLink(); // Устанавливает ссылку при загрузке
+    }
+
+    // --- 10. ЗАПУСК ---
+    setupTabs();
+    setupLanguageSwitcher();
+    setupQRScanner();
     addParticipant();
-    addItem();
+    translatePage();
+
+    // --- 11. ЗАГРУЗКА jsQR ---
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+    script.async = true;
+    script.onload = () => console.log('✅ jsQR успешно загружен');
+    script.onerror = () => console.error('❌ Не удалось загрузить jsQR');
+    document.head.appendChild(script);
 });

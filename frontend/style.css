@@ -1,6 +1,6 @@
 /*
  * Стили для "Дели счёт" — Разделение чека
- * Версия 3.6 — Логотип 250px, ровные вкладки, единый стиль форм
+ * Версия 3.7 — Чаевые горизонтально на мобильных, видимый переключатель языка
  */
 
 * {
@@ -49,15 +49,58 @@ body {
     transform: scale(1.03);
 }
 
-/* Язык */
+/* === Переключатель языка — видимый на мобильных === */
 .language-switcher {
     position: absolute;
     top: 20px;
-    right: 40px;
-    z-index: 100;
+    right: 20px; /* Уменьшили отступ справа для компактности */
+    z-index: 1000;
 }
 
-/* === Вкладки — чёткое выделение, одинаковый размер === */
+#lang-toggle {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 8px;
+    border-radius: 50%;
+    transition: transform 0.2s;
+}
+
+#lang-toggle:hover {
+    transform: scale(1.1);
+}
+
+#lang-menu {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background: white;
+    border: 1px solid #d2d2d7;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    display: none;
+}
+
+#lang-menu button {
+    width: 100%;
+    text-align: left;
+    padding: 10px 15px;
+    border: none;
+    background: white;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.2s;
+}
+
+#lang-menu button:hover {
+    background: #f5f5f5;
+}
+
+/* === Вкладки === */
 .tabs {
     display: flex;
     flex-wrap: nowrap;
@@ -99,50 +142,108 @@ body {
     color: #0071e3;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
     font-weight: 600;
-    border: none;
-    transform: none;
 }
 
-/* === Адаптивность: мобильная версия === */
+/* === Формы — одинаковый стиль === */
+.participant,
+.item,
+#tip-controls {
+    padding: 16px;
+    background: #f8f8f8;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+.participant input,
+.item input,
+.item-name,
+.item-price,
+.item-quantity {
+    flex: 1;
+    min-width: 120px;
+    padding: 12px;
+    border: 1px solid #d2d2d7;
+    border-radius: 8px;
+    font-size: 17px;
+    font-family: inherit;
+}
+
+.remove-participant,
+.remove-item {
+    background: #ff3b30;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    min-width: 44px;
+}
+
+/* === Чаевые — горизонтально на мобильных === */
+#tip-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+#tip-percent, #tip-fixed {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#tip-amount, #tip-fixed-amount {
+    width: 90px;
+    padding: 12px;
+    border: 1px solid #d2d2d7;
+    border-radius: 8px;
+    font-size: 17px;
+}
+
+.or-text {
+    color: #777;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* === Адаптивность для мобильных === */
 @media (max-width: 768px) {
     /* Уменьшаем текст вкладок на 20% */
     .tab-button {
-        font-size: 12.8px; /* 16px * 0.8 */
+        font-size: 12.8px;
         padding: 12px 12px;
         min-width: 90px;
     }
 
-    /* Единый стиль для всех форм — как "Чаевые" */
-    .participant,
-    .item,
+    /* Чаевые — поля в строку, даже на мобильных */
     #tip-controls {
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    #tip-percent, #tip-fixed {
+        white-space: nowrap;
+    }
+
+    #tip-amount, #tip-fixed-amount {
+        width: 80px;
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    .or-text {
+        margin: 0 8px;
+    }
+
+    /* Формы — растягиваем во всю ширину */
+    .participant,
+    .item {
         flex-direction: column;
         align-items: stretch;
-        gap: 10px;
-        padding: 14px;
-    }
-
-    .item-consumers {
-        margin-top: 10px;
-    }
-
-    .item-consumers label {
-        margin: 4px 0;
-    }
-
-    /* Поля ввода — во всю ширину */
-    input[type="text"],
-    input[type="number"],
-    .item-name,
-    .item-price,
-    .item-quantity,
-    #tip-amount,
-    #tip-fixed-amount {
-        width: 100%;
-        font-size: 15px;
-        padding: 12px;
-        border: 1px solid #d2d2d7;
-        border-radius: 8px;
     }
 
     /* Кнопки — во всю ширину */
@@ -156,71 +257,25 @@ body {
         padding: 14px;
     }
 
-    /* Уменьшаем отступы в контенте */
-    .tab-content {
-        padding: 20px 16px;
-    }
-
     /* Логотип — немного уменьшим на очень малых экранах */
     @media (max-width: 480px) {
         #logo-img {
             width: 200px;
             height: 200px;
         }
+
+        .language-switcher {
+            top: 12px;
+            right: 12px;
+        }
+
+        #lang-toggle {
+            font-size: 20px;
+        }
     }
 }
 
-/* === Унифицированный стиль форм (десктоп + мобильный) === */
-.participant,
-.item,
-#tip-controls {
-    padding: 16px;
-    background: #f8f8f8;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
-    margin-bottom: 12px;
-}
-
-/* Поля */
-.participant input,
-.item input,
-.item-name {
-    flex: 1;
-    min-width: 120px;
-    padding: 12px;
-    border: 1px solid #d2d2d7;
-    border-radius: 8px;
-    font-size: 17px;
-    font-family: inherit;
-}
-
-/* Кнопки удаления */
-.remove-participant,
-.remove-item {
-    background: #ff3b30;
-    color: white;
-    border: none;
-    padding: 10px 14px;
-    font-size: 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    min-width: 44px;
-}
-
-/* Чаевые — уже как шаблон, но явно зададим */
-#tip-controls {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-
-#tip-amount,
-#tip-fixed-amount {
-    width: 90px;
-}
-
-/* Кнопки */
+/* === Кнопки === */
 button {
     background: #0071e3;
     color: white;
@@ -257,7 +312,7 @@ button:active {
     margin: 24px 0;
 }
 
-/* Результат */
+/* === Результат === */
 #result {
     display: none;
     margin-top: 24px;
@@ -272,7 +327,7 @@ button:active {
     font-size: 17px;
 }
 
-/* Сканирование */
+/* === Сканирование === */
 #scan-qr {
     background: #5856d6;
     margin: 24px 0;
@@ -308,7 +363,7 @@ button:active {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Уведомления */
+/* === Уведомления === */
 .notification {
     position: fixed;
     top: 30px;
@@ -323,7 +378,7 @@ button:active {
     border: 1px solid rgba(255,255,255,0.2);
 }
 
-/* Скрытие табов */
+/* === Скрытие табов === */
 .tab-content {
     display: none;
 }

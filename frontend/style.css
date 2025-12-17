@@ -1,6 +1,6 @@
 /*
  * Стили для "Дели счёт" — Разделение чека
- * Версия 4.1 — Все формы ввода уменьшены на 20% в мобильной версии
+ * Версия 4.2 — Чаевые горизонтально, мобильная оптимизация
  */
 
 * {
@@ -181,6 +181,27 @@ body {
     min-width: 44px;
 }
 
+/* === Чаевые — всегда горизонтально === */
+#tip-controls {
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    padding: 16px !important;
+    background: #f8f8f8 !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 10px !important;
+    margin: 10px 0 !important;
+    flex-wrap: wrap !important;
+}
+
+#tip-percent,
+#tip-fixed {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
 #tip-amount,
 #tip-fixed-amount {
     width: 90px;
@@ -190,97 +211,47 @@ body {
     font-size: 17px;
 }
 
-/* === Кнопки === */
-button,
-#add-participant-btn,
-#calculate-btn {
-    font-size: 17px;
-    padding: 14px 20px;
-    border-radius: 10px;
+.or-text {
+    color: #777;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
-#add-participant-btn,
-#calculate-btn {
+/* === Кнопки === */
+button {
+    background: #0071e3;
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    font-size: 17px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+button:hover {
+    background: #005edc;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+#add-participant-btn {
+    background: #34c759;
+    font-size: 17px;
+    padding: 16px;
     width: 100%;
     margin: 16px 0;
 }
 
-/* === Адаптивность: мобильная версия — уменьшаем всё на 20% === */
-@media (max-width: 768px) {
-    /* Уменьшаем текст вкладок на 20% */
-    .tab-button {
-        font-size: 12.8px;  /* 16px × 0.8 */
-        padding: 11.2px 12.8px;  /* 14px × 0.8 */
-        min-width: 88px;
-    }
-
-    /* Уменьшаем размер полей ввода */
-    input[type="text"],
-    input[type="number"],
-    .item-name,
-    .item-price,
-    .item-quantity,
-    #tip-amount,
-    #tip-fixed-amount {
-        font-size: 13.6px;  /* 17px × 0.8 */
-        padding: 9.6px;  /* 12px × 0.8 */
-        border-radius: 6.4px;  /* 8px × 0.8 */
-    }
-
-    /* Уменьшаем кнопки */
-    button,
-    .remove-participant,
-    .remove-item {
-        font-size: 13.6px;  /* 17px × 0.8 */
-        padding: 11.2px 16px;  /* 14px × 0.8 */
-    }
-
-    /* Уменьшаем отступы в формах */
-    .participant,
-    .item,
-    #tip-controls {
-        padding: 12.8px;  /* 16px × 0.8 */
-        margin-bottom: 9.6px;  /* 12px × 0.8 */
-    }
-
-    /* Уменьшаем gap в tip-controls */
-    #tip-controls {
-        gap: 12.8px;  /* 16px × 0.8 */
-    }
-
-    #tip-percent,
-    #tip-fixed {
-        gap: 4.8px;
-    }
-
-    /* Чаевые — остаются горизонтально */
-    #tip-controls {
-        flex-direction: row;
-        justify-content: flex-start;
-        align-items: center;
-    }
-
-    .or-text {
-        font-size: 12px;  /* 15px × 0.8 */
-        margin: 0 6px;
-    }
-
-    /* Логотип — чуть меньше на малых экранах */
-    @media (max-width: 480px) {
-        #logo-img {
-            width: 200px;
-            height: 200px;
-        }
-
-        .language-switcher {
-            top: 12px;
-            right: 12px;
-        }
-
-        #lang-toggle {
-            font-size: 20px;
-        }
-    }
+#calculate-btn {
+    background: #ff9500;
+    font-size: 18px;
+    padding: 18px;
+    width: 100%;
+    font-weight: 600;
+    margin: 24px 0;
 }
 
 /* === Результат === */
@@ -356,4 +327,78 @@ button,
 
 .tab-content.active {
     display: block;
+}
+
+/* === Адаптивность для мобильных === */
+@media (max-width: 768px) {
+    /* Уменьшаем текст вкладок на 20% */
+    .tab-button {
+        font-size: 12.8px;
+        padding: 11.2px 12.8px;
+        min-width: 88px;
+    }
+
+    /* Уменьшаем поля ввода на 20% */
+    input[type="text"],
+    input[type="number"],
+    .item-name,
+    .item-price,
+    .item-quantity,
+    #tip-amount,
+    #tip-fixed-amount {
+        font-size: 13.6px;
+        padding: 9.6px;
+        border-radius: 6.4px;
+    }
+
+    /* Уменьшаем кнопки */
+    button,
+    .remove-participant,
+    .remove-item {
+        font-size: 13.6px;
+        padding: 11.2px 16px;
+    }
+
+    /* Уменьшаем отступы в формах */
+    .participant,
+    .item,
+    #tip-controls {
+        padding: 12.8px;
+        margin-bottom: 9.6px;
+    }
+
+    /* Чаевые — остаются горизонтально */
+    #tip-controls {
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 12.8px !important;
+        flex-wrap: wrap !important;
+    }
+
+    #tip-percent,
+    #tip-fixed {
+        gap: 4.8px !important;
+    }
+
+    .or-text {
+        font-size: 12px;
+        margin: 0 6px;
+    }
+
+    /* Логотип — чуть меньше на очень малых экранах */
+    @media (max-width: 480px) {
+        #logo-img {
+            width: 200px;
+            height: 200px;
+        }
+
+        .language-switcher {
+            top: 12px;
+            right: 12px;
+        }
+
+        #lang-toggle {
+            font-size: 20px;
+        }
+    }
 }

@@ -1,5 +1,6 @@
-// frontend/app.js — Полная рабочая версия (Версия 3.2, исправлена загрузка файла)
-// Платим вместе — Разделение счёта
+// frontend/app.js — Дели счёт (Версия 4.0)
+// Чистый интерфейс: язык = только флаги
+// Автор: GigaCode
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log('✅ DOM загружен — инициализация приложения');
@@ -9,7 +10,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const tabButtons = document.querySelectorAll('.tab-button');
         const tabContents = document.querySelectorAll('.tab-content');
 
-        // Изначально скрываем все, кроме активной
         tabContents.forEach(tab => {
             tab.style.display = tab.classList.contains('active') ? 'block' : 'none';
         });
@@ -19,16 +19,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 const tabName = this.dataset.tab;
                 console.log('📌 Переключение на вкладку:', tabName);
 
-                // Обновляем кнопки
                 tabButtons.forEach(btn => btn.classList.remove('active'));
                 this.classList.add('active');
 
-                // Скрываем все вкладки
                 tabContents.forEach(tab => {
                     tab.style.display = 'none';
                 });
 
-                // Показываем нужную
                 const targetTab = document.getElementById(`${tabName}-tab`);
                 if (targetTab) {
                     targetTab.style.display = 'block';
@@ -52,7 +49,6 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
         container.appendChild(el);
 
-        // Обновляем чекбоксы у товаров
         el.querySelector('.participant-name').addEventListener('input', updateConsumerCheckboxes);
         updateConsumerCheckboxes();
     };
@@ -74,31 +70,29 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- 3. ЗАГРУЗКА ФАЙЛА: КЛИК + DRAG & DROP (НЕ ЗАВИСИТ ОТ #scan-qr) ---
+    // --- 3. ЗАГРУЗКА ФАЙЛА — КЛИК + DRAG & DROP (без зависимости от QR) ---
     function setupFileUpload() {
         const uploadArea = document.getElementById('upload-area');
         const receiptPreview = document.getElementById('receipt-preview');
 
         if (!uploadArea) {
-            console.error('❌ #upload-area не найден в DOM');
+            console.error('❌ #upload-area не найден');
             return;
         }
 
         if (!receiptPreview) {
-            console.error('❌ #receipt-preview не найден в DOM');
+            console.error('❌ #receipt-preview не найден');
             return;
         }
 
         // Клик: открыть проводник
         uploadArea.addEventListener('click', () => {
-            console.log('📎 Клик по зоне загрузки');
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*';
             input.onchange = (e) => {
                 const file = e.target.files[0];
                 if (file) {
-                    console.log('📎 Файл выбран:', file.name);
                     const url = URL.createObjectURL(file);
                     receiptPreview.innerHTML = `
                         <img src="${url}" alt="Чек" style="max-width:100%;border-radius:12px;margin-top:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
@@ -127,7 +121,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const file = e.dataTransfer.files[0];
             if (file && file.type.startsWith('image/')) {
-                console.log('✅ Файл загружен через drag & drop:', file.name);
                 const url = URL.createObjectURL(file);
                 receiptPreview.innerHTML = `
                     <img src="${url}" alt="Чек" style="max-width:100%;border-radius:12px;margin-top:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
@@ -138,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- 4. СКАНИРОВАНИЕ QR-КОДА (опционально) ---
+    // --- 4. СКАНИРОВАНИЕ QR-КОДА ---
     function setupQRScanner() {
         const scanButton = document.getElementById('scan-qr');
         if (!scanButton) {
@@ -147,8 +140,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         scanButton.addEventListener('click', async () => {
-            console.log('📸 Кнопка "Сканировать QR-код" нажата');
-
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 console.log('✅ Доступ к камере получен');
@@ -187,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             } catch (err) {
                 console.error('❌ Ошибка камеры:', err);
-                let errorMsg = 'Неизвестная ошибка';
+                let errorMsg = '❌ Ошибка';
                 if (err.name === 'NotAllowedError') errorMsg = '❌ Доступ к камере запрещён';
                 if (err.name === 'NotFoundError') errorMsg = '❌ Камера не найдена';
                 if (err.name === 'NotReadableError') errorMsg = '❌ Камера занята';
@@ -293,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function () {
         updateConsumerCheckboxes();
     }
 
-    // --- 5. ПЕРЕКЛЮЧЕНИЕ ЯЗЫКА ---
+    // --- 5. ПЕРЕКЛЮЧЕНИЕ ЯЗЫКА — ТОЛЬКО ФЛАГИ ---
     function setupLanguageSwitcher() {
         const toggle = document.getElementById('lang-toggle');
         const menu = document.getElementById('lang-menu');
@@ -303,15 +294,27 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Обновление иконки на текущий флаг
+        function updateToggleIcon(lang) {
+            toggle.innerHTML = lang === 'ru' ? '🇷🇺' : '🇬🇧';
+        }
+
+        // Устанавливаем текущий язык
+        const savedLang = localStorage.getItem('appLang') || 'ru';
+        updateToggleIcon(savedLang);
+
+        // Клик по кнопке
         toggle.addEventListener('click', (e) => {
             e.stopPropagation();
             menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         });
 
+        // Закрытие при клике вне
         document.addEventListener('click', () => {
             menu.style.display = 'none';
         });
 
+        // Выбор языка
         menu.addEventListener('click', (e) => {
             if (e.target.tagName === 'BUTTON') {
                 const lang = e.target.dataset.lang;
@@ -319,12 +322,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     localStorage.setItem('appLang', lang);
                     console.log('🌐 Язык изменён:', lang);
                     translatePage(lang);
+                    updateToggleIcon(lang);
                     menu.style.display = 'none';
                 }
             }
         });
     }
 
+    // --- 6. ПЕРЕВОД ТЕКСТА ---
     function translatePage(lang = localStorage.getItem('appLang') || 'ru') {
         const t = {
             ru: {
@@ -396,7 +401,7 @@ document.addEventListener('DOMContentLoaded', function () {
         setText('version-info', t.version);
     }
 
-    // --- 6. РАСЧЁТ СЧЁТА ---
+    // --- 7. РАСЧЁТ СЧЁТА ---
     document.getElementById('bill-form')?.addEventListener('submit', function (e) {
         e.preventDefault();
         const participants = Array.from(document.querySelectorAll('#participants-container .participant-name'))
@@ -486,7 +491,7 @@ document.addEventListener('DOMContentLoaded', function () {
         showNotification(lang === 'en' ? '✅ Bill calculated!' : '✅ Счёт рассчитан!', 'success');
     }
 
-    // --- 7. УВЕДОМЛЕНИЯ ---
+    // --- 8. УВЕДОМЛЕНИЯ ---
     function showNotification(message, type) {
         const n = document.createElement('div');
         n.className = `notification ${type}`;
@@ -505,12 +510,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 5000);
     }
 
-    // --- 8. УДАЛЕНИЕ ТОВАРА ---
+    // --- 9. УДАЛЕНИЕ ТОВАРА ---
     window.removeItem = function (button) {
         button.closest('.item').remove();
     };
 
-    // --- 9. ЭКРАНИРОВАНИЕ HTML ---
+    // --- 10. ЭКРАНИРОВАНИЕ HTML ---
     function escapeHtml(s) {
         return s.toString()
             .replace(/&/g, '&amp;')
@@ -520,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .replace(/'/g, '&#039;');
     }
 
-    // --- 10. ДОНАТЫ ---
+    // --- 11. ДОНАТЫ ---
     const donateAmount = document.getElementById('donate-amount');
     const donateButton = document.getElementById('donate-button');
     if (donateAmount && donateButton) {
@@ -532,15 +537,15 @@ document.addEventListener('DOMContentLoaded', function () {
         updateDonateLink();
     }
 
-    // --- 11. ЗАПУСК ---
+    // --- 12. ЗАПУСК ---
     setupTabs();
     setupLanguageSwitcher();
-    setupFileUpload();     // ✅ Загрузка файла (главное!)
-    setupQRScanner();      // Опционально: если нужна камера
+    setupFileUpload();
+    setupQRScanner();
     addParticipant();
     translatePage();
 
-    // --- 12. ЗАГРУЗКА jsQR ---
+    // --- 13. ЗАГРУЗКА jsQR ---
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
     script.async = true;

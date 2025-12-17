@@ -1,6 +1,6 @@
 /*
  * Стили для "Дели счёт" — Разделение чека
- * Версия 4.2 — Чаевые горизонтально, мобильная оптимизация
+ * Версия 4.3 — Язык виден, чаевые горизонтально
  */
 
 * {
@@ -49,7 +49,7 @@ body {
     transform: scale(1.03);
 }
 
-/* === Переключатель языка === */
+/* === Переключатель языка с текстом === */
 .language-switcher {
     position: absolute;
     top: 20px;
@@ -60,16 +60,25 @@ body {
 #lang-toggle {
     background: none;
     border: none;
-    font-size: 24px;
+    font-size: 16px;
     cursor: pointer;
     color: #666;
-    padding: 8px;
-    border-radius: 50%;
-    transition: transform 0.2s;
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
 }
 
 #lang-toggle:hover {
-    transform: scale(1.1);
+    color: #0071e3;
+    transform: scale(1.05);
+}
+
+#lang-text {
+    font-size: 15px;
+    font-weight: 500;
 }
 
 #lang-menu {
@@ -331,14 +340,12 @@ button:active {
 
 /* === Адаптивность для мобильных === */
 @media (max-width: 768px) {
-    /* Уменьшаем текст вкладок на 20% */
     .tab-button {
         font-size: 12.8px;
         padding: 11.2px 12.8px;
         min-width: 88px;
     }
 
-    /* Уменьшаем поля ввода на 20% */
     input[type="text"],
     input[type="number"],
     .item-name,
@@ -351,7 +358,6 @@ button:active {
         border-radius: 6.4px;
     }
 
-    /* Уменьшаем кнопки */
     button,
     .remove-participant,
     .remove-item {
@@ -359,7 +365,6 @@ button:active {
         padding: 11.2px 16px;
     }
 
-    /* Уменьшаем отступы в формах */
     .participant,
     .item,
     #tip-controls {
@@ -367,7 +372,6 @@ button:active {
         margin-bottom: 9.6px;
     }
 
-    /* Чаевые — остаются горизонтально */
     #tip-controls {
         flex-direction: row !important;
         align-items: center !important;
@@ -375,30 +379,19 @@ button:active {
         flex-wrap: wrap !important;
     }
 
-    #tip-percent,
-    #tip-fixed {
-        gap: 4.8px !important;
+    #lang-toggle {
+        font-size: 14px;
+        padding: 6px 10px;
     }
 
-    .or-text {
-        font-size: 12px;
-        margin: 0 6px;
+    #lang-text {
+        font-size: 13px;
     }
 
-    /* Логотип — чуть меньше на очень малых экранах */
     @media (max-width: 480px) {
         #logo-img {
             width: 200px;
             height: 200px;
-        }
-
-        .language-switcher {
-            top: 12px;
-            right: 12px;
-        }
-
-        #lang-toggle {
-            font-size: 20px;
         }
     }
 }

@@ -1,57 +1,18 @@
 /*
- * style.css — "Дели счёт" (Версия 5.3)
- * Кнопка темы — слева, как язык. Одинаковый стиль.
- * Автор: GigaCode
+ * Стили для "Дели счёт" — Разделение чека
+ * Версия 4.4.1 — Кнопки удаления уменьшены и фиксированы для мобильных
  */
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
 }
 
-/* === CSS-переменные темы === */
-:root {
-    --bg-primary: #f9f9fb;
-    --bg-secondary: #f8f8f8;
-    --text-primary: #333;
-    --text-secondary: #555;
-    --border-color: #d2d2d7;
-    --accent-color: #0071e3;
-    --remove-bg: #ff3b30;
-    --card-bg: white;
-    --shadow: rgba(0, 0, 0, 0.1);
-    --upload-bg: #f8f8ff;
-    --upload-border: #0071e3;
-    --notification-bg: #28a745;
-    --result-bg: #f0f8ff;
-    --result-border: #d0e0ff;
-}
-
-/* Тёмная тема */
-[data-theme="dark"] {
-    --bg-primary: #121212;
-    --bg-secondary: #1e1e1e;
-    --text-primary: #f0f0f0;
-    --text-secondary: #aaa;
-    --border-color: #444;
-    --accent-color: #0a84ff;
-    --remove-bg: #ff453a;
-    --card-bg: #252525;
-    --shadow: rgba(0, 0, 0, 0.3);
-    --upload-bg: #2a2a2a;
-    --upload-border: #0a84ff;
-    --notification-bg: #30c75a;
-    --result-bg: #2d3748;
-    --result-border: #4a5568;
-}
-
-/* === Глобальные стили === */
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    background: #f9f9fb;
+    color: #333;
     line-height: 1.6;
     padding: 0;
     margin: 0;
@@ -65,7 +26,7 @@ body {
     position: relative;
 }
 
-/* === Логотип === */
+/* === Логотип — 250×250 px === */
 .app-header {
     text-align: center;
     padding: 30px 0 20px;
@@ -79,7 +40,7 @@ body {
     width: 250px;
     height: 250px;
     border-radius: 20px;
-    box-shadow: 0 8px 20px var(--shadow);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
     transition: transform 0.3s ease;
     object-fit: cover;
 }
@@ -88,72 +49,64 @@ body {
     transform: scale(1.03);
 }
 
-/* === Переключатель темы — слева, как язык === */
-#theme-toggle {
-    position: absolute;
-    top: 20px;
-    left: 40px;
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--text-primary);
-    z-index: 1000;
-    transition: transform 0.2s ease;
-}
-
-#theme-toggle:hover {
-    transform: scale(1.1);
-}
-
-/* === Переключатель языка — справа вверху === */
+/* === Переключатель языка с текстом === */
 .language-switcher {
     position: absolute;
     top: 20px;
-    right: 40px;
+    right: 20px;
     z-index: 1000;
 }
 
 #lang-toggle {
     background: none;
     border: none;
-    font-size: 24px;
+    font-size: 16px;
     cursor: pointer;
-    color: var(--text-primary);
-    transition: transform 0.2s ease;
+    color: #666;
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
 }
 
 #lang-toggle:hover {
-    transform: scale(1.1);
+    color: #0071e3;
+    transform: scale(1.05);
+}
+
+#lang-text {
+    font-size: 15px;
+    font-weight: 500;
 }
 
 #lang-menu {
     position: absolute;
-    top: 30px;
+    top: 40px;
     right: 0;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    background: white;
+    border: 1px solid #d2d2d7;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 4px 12px var(--shadow);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 1000;
     display: none;
 }
 
 #lang-menu button {
     width: 100%;
-    padding: 14px;
+    text-align: left;
+    padding: 10px 15px;
     border: none;
-    background: var(--card-bg);
-    color: var(--text-primary);
+    background: white;
     cursor: pointer;
-    font-size: 20px;
-    text-align: center;
+    font-size: 16px;
     transition: background 0.2s;
 }
 
 #lang-menu button:hover {
-    background: #3a3a3a;
+    background: #f5f5f5;
 }
 
 /* === Вкладки === */
@@ -168,7 +121,7 @@ body {
     background: #f0f0f0;
     border-radius: 12px;
     padding: 4px;
-    box-shadow: 0 1px 6px var(--shadow);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
     min-height: 48px;
     scrollbar-width: none;
 }
@@ -183,10 +136,10 @@ body {
     font-size: 16px;
     font-weight: 500;
     text-align: center;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: transparent;
+    border: none;
     border-radius: 9px;
-    color: var(--text-secondary);
+    color: #555;
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
@@ -194,27 +147,26 @@ body {
 }
 
 .tab-button.active {
-    background: var(--card-bg);
-    color: var(--accent-color);
+    background: white;
+    color: #0071e3;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
     font-weight: 600;
-    border-color: var(--accent-color);
 }
 
-/* === Формы — участники и товары === */
+/* === Формы — универсальные стили === */
 .participant,
 .item {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 12px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: #f8f8f8;
+    border: 1px solid #e0e0e0;
     border-radius: 10px;
     margin-bottom: 10px;
-    transition: all 0.3s ease;
 }
 
+/* Поля ввода */
 .participant input,
 .item input,
 .item-name,
@@ -223,22 +175,20 @@ body {
     flex: 1;
     min-width: 100px;
     padding: 10px;
-    border: 1px solid var(--border-color);
+    border: 1px solid #d2d2d7;
     border-radius: 8px;
     font-size: 16px;
     font-family: inherit;
-    background: var(--card-bg);
-    color: var(--text-primary);
 }
 
-/* === Кнопки удаления === */
+/* === Кнопки удаления — маленькие, как галочки === */
 .remove-participant,
 .remove-item {
     width: 28px;
     height: 28px;
     min-width: 28px;
     min-height: 28px;
-    background: var(--remove-bg);
+    background: #ff3b30;
     color: white;
     border: none;
     border-radius: 50%;
@@ -262,58 +212,14 @@ body {
     transform: scale(1.1);
 }
 
-/* === Загрузка чека === */
-#upload-area {
-    text-align: center;
-    padding: 40px 20px;
-    border: 2px dashed var(--upload-border);
-    border-radius: 14px;
-    cursor: pointer;
-    background: var(--upload-bg);
-    transition: all 0.2s ease;
-    margin: 24px 0;
-}
-
-#upload-area:hover {
-    background: #eef4ff;
-    border-color: #005edc;
-}
-
-[data-theme="dark"] #upload-area:hover {
-    background: #3a3a3a;
-    border-color: var(--accent-color);
-}
-
-#upload-area.drag-over {
-    background: var(--upload-bg);
-    border-color: var(--accent-color);
-}
-
-[data-theme="dark"] #upload-area.drag-over {
-    background: #3a3a3a;
-}
-
-#upload-area p {
-    color: var(--text-primary);
-    font-size: 17px;
-    margin: 8px 0;
-}
-
-#receipt-preview img {
-    max-width: 100%;
-    border-radius: 12px;
-    margin-top: 12px;
-    box-shadow: 0 4px 12px var(--shadow);
-}
-
-/* === Чаевые === */
+/* === Чаевые — всегда горизонтально === */
 #tip-controls {
     display: flex;
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: #f8f8f8;
+    border: 1px solid #e0e0e0;
     border-radius: 10px;
     margin: 10px 0;
     flex-wrap: wrap;
@@ -331,22 +237,20 @@ body {
 #tip-fixed-amount {
     width: 90px;
     padding: 12px;
-    border: 1px solid var(--border-color);
+    border: 1px solid #d2d2d7;
     border-radius: 8px;
     font-size: 17px;
-    background: var(--card-bg);
-    color: var(--text-primary);
 }
 
 .or-text {
-    color: var(--text-secondary);
+    color: #777;
     font-weight: 500;
     white-space: nowrap;
 }
 
 /* === Кнопки действия === */
 button {
-    background: var(--accent-color);
+    background: #0071e3;
     color: white;
     border: none;
     padding: 14px 20px;
@@ -358,10 +262,6 @@ button {
 
 button:hover {
     background: #005edc;
-}
-
-[data-theme="dark"] button:hover {
-    background: #0066cc;
 }
 
 button:active {
@@ -390,20 +290,50 @@ button:active {
     display: none;
     margin-top: 24px;
     padding: 28px;
-    background: var(--result-bg);
-    border: 1px solid var(--result-border);
+    background: #f0f8ff;
+    border: 1px solid #d0e0ff;
     border-radius: 14px;
 }
 
 #result-details {
     line-height: 1.9;
     font-size: 17px;
-    color: var(--text-primary);
 }
 
-#result-details hr {
-    border: 1px solid var(--border-color);
-    margin: 10px 0;
+/* === Сканирование === */
+#scan-qr {
+    background: #5856d6;
+    margin: 24px 0;
+    padding: 18px;
+    width: 100%;
+}
+
+#upload-area {
+    text-align: center;
+    padding: 40px 20px;
+    border: 2px dashed #0071e3;
+    border-radius: 14px;
+    cursor: pointer;
+    background: #f8f8ff;
+    transition: all 0.2s;
+}
+
+#upload-area:hover {
+    background: #eef4ff;
+    border-color: #005edc;
+}
+
+#upload-area p {
+    color: #555;
+    font-size: 17px;
+    margin: 8px 0;
+}
+
+#receipt-preview img {
+    max-width: 100%;
+    border-radius: 12px;
+    margin-top: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* === Уведомления === */
@@ -411,19 +341,17 @@ button:active {
     position: fixed;
     top: 30px;
     right: 30px;
-    padding: 14px 20px;
-    border-radius: 10px;
+    padding: 16px 22px;
+    border-radius: 12px;
     color: white;
     z-index: 10000;
     box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    font-size: 14px;
+    font-size: 15px;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,0.2);
-    opacity: 1;
-    transition: opacity 0.3s ease;
 }
 
-/* === Скрытие вкладок === */
+/* === Скрытие табов === */
 .tab-content {
     display: none;
 }
@@ -438,46 +366,95 @@ button:active {
         padding: 20px 0 16px;
     }
 
-    #logo-img {
-        width: 200px;
-        height: 200px;
+    .tab-button {
+        font-size: 12.8px;
+        padding: 11.2px 10px;
+        min-width: 88px;
     }
 
-    #theme-toggle,
-    .language-switcher {
-        top: 12px;
+    input[type="text"],
+    input[type="number"],
+    .item-name,
+    .item-price,
+    .item-quantity,
+    #tip-amount,
+    #tip-fixed-amount {
+        font-size: 14px;
+        padding: 9px;
+        border-radius: 6px;
     }
 
-    #theme-toggle {
-        left: 12px;
-        font-size: 20px;
+    /* === ГАРАНТИРОВАННЫЙ ФИКС КНОПОК УДАЛЕНИЯ НА МОБИЛЬНЫХ === */
+    .remove-participant,
+    .remove-item {
+        all: unset !important;
+        width: 26px !important;
+        height: 26px !important;
+        min-width: 26px !important;
+        min-height: 26px !important;
+        background: #ff3b30 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 50% !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        line-height: 1 !important;
+        text-align: center !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-left: 6px !important;
+        padding: 0 !important;
+        transition: background 0.2s, transform 0.1s !important;
     }
 
-    .language-switcher {
-        right: 12px;
+    .remove-participant:hover,
+    .remove-item:hover {
+        background: #d63031 !important;
+        transform: scale(1.1) !important;
     }
 
-    #lang-toggle {
-        font-size: 20px;
-    }
-}
-
-@media (max-width: 480px) {
-    #theme-toggle,
-    .language-switcher {
-        top: 8px;
+    /* Формы */
+    .participant,
+    .item {
+        padding: 10px;
+        gap: 8px;
+        flex-wrap: wrap;
     }
 
-    #theme-toggle {
-        left: 8px;
-        font-size: 18px;
+    #add-participant-btn,
+    #calculate-btn {
+        font-size: 16px;
+        padding: 14px;
     }
 
-    .language-switcher {
-        right: 8px;
-    }
+    /* === Дополнительный фикс на очень малых экранах === */
+    @media (max-width: 480px) {
+        #logo-img {
+            width: 200px;
+            height: 200px;
+        }
 
-    #lang-toggle {
-        font-size: 18px;
+        .language-switcher {
+            top: 12px;
+            right: 12px;
+        }
+
+        #lang-toggle {
+            font-size: 14px;
+            padding: 6px 10px;
+        }
+
+        #lang-text {
+            font-size: 13px;
+        }
+
+        .remove-participant,
+        .remove-item {
+            width: 24px !important;
+            height: 24px !important;
+            font-size: 15px !important;
+        }
     }
 }

@@ -1,5 +1,5 @@
-// frontend/app.js — Дели счёт (Версия 4.0)
-// Чистый интерфейс: язык = только флаги
+// frontend/app.js — "Дели счёт" (Версия 5.4)
+// Участники под товарами — в столбик
 // Автор: GigaCode
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
         updateConsumerCheckboxes();
     };
 
+    // --- 3. ОБНОВЛЕНИЕ ЧЕКБОКСОВ — УЧАСТНИКИ В СТОЛБИК ---
     function updateConsumerCheckboxes() {
         const participants = Array.from(document.querySelectorAll('#participants-container .participant'))
             .map(p => p.querySelector('.participant-name').value.trim())
@@ -65,12 +66,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.querySelectorAll('.item-consumers').forEach(container => {
             container.innerHTML = participants.map(name => `
-                <label><input type="checkbox" checked> ${escapeHtml(name)}</label>
+                <label>
+                    <input type="checkbox" checked>
+                    ${escapeHtml(name)}
+                </label>
             `).join('');
         });
     }
 
-    // --- 3. ЗАГРУЗКА ФАЙЛА — КЛИК + DRAG & DROP (без зависимости от QR) ---
+    // --- 4. ЗАГРУЗКА ЧЕКА — КЛИК + DRAG & DROP ---
     function setupFileUpload() {
         const uploadArea = document.getElementById('upload-area');
         const receiptPreview = document.getElementById('receipt-preview');
@@ -105,19 +109,18 @@ document.addEventListener('DOMContentLoaded', function () {
         // Drag & Drop
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
-            uploadArea.style.background = '#eef4ff';
-            uploadArea.style.borderColor = '#0071e3';
+            uploadArea.style.background = 'var(--upload-bg)';
+            uploadArea.style.borderColor = 'var(--accent-color)';
+            uploadArea.classList.add('drag-over');
         });
 
         uploadArea.addEventListener('dragleave', () => {
-            uploadArea.style.background = '#f8f8ff';
-            uploadArea.style.borderColor = '#d2d2d7';
+            uploadArea.classList.remove('drag-over');
         });
 
         uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
-            uploadArea.style.background = '#f8f8ff';
-            uploadArea.style.borderColor = '#d2d2d7';
+            uploadArea.classList.remove('drag-over');
 
             const file = e.dataTransfer.files[0];
             if (file && file.type.startsWith('image/')) {
@@ -125,13 +128,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 receiptPreview.innerHTML = `
                     <img src="${url}" alt="Чек" style="max-width:100%;border-radius:12px;margin-top:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
                 `;
-            } else {
-                alert('Пожалуйста, перетащите изображение');
             }
         });
     }
 
-    // --- 4. СКАНИРОВАНИЕ QR-КОДА ---
+    // --- 5. СКАНИРОВАНИЕ QR-КОДА ---
     function setupQRScanner() {
         const scanButton = document.getElementById('scan-qr');
         if (!scanButton) {
@@ -151,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 video.style = 'width:100%;max-width:400px;border-radius:12px;margin:10px auto;display:block';
 
                 const container = document.getElementById('upload-area');
-                container.innerHTML = '<p style="color:#0071e3;margin:10px 0">🔍 Наведите камеру на QR-код</p>';
+                container.innerHTML = '<p style="color:var(--accent-color);margin:10px 0">🔍 Наведите камеру на QR-код</p>';
                 container.appendChild(video);
 
                 const canvas = document.createElement('canvas');
@@ -254,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             fillItemsFromCheck(items);
             showNotification('✅ Чек загружен', 'success');
-            container.innerHTML = '<p style="color:green">✅ Чек успешно загружен</p>';
+            container.innerHTML = '<p style="color:var(--accent-color)">✅ Чек успешно загружен</p>';
 
         } catch (err) {
             console.error('❌ Ошибка загрузки чека:', err);
@@ -284,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function () {
         updateConsumerCheckboxes();
     }
 
-    // --- 5. ПЕРЕКЛЮЧЕНИЕ ЯЗЫКА — ТОЛЬКО ФЛАГИ ---
+    // --- 6. ПЕРЕКЛЮЧЕНИЕ ЯЗЫКА — ТОЛЬКО ФЛАГИ ---
     function setupLanguageSwitcher() {
         const toggle = document.getElementById('lang-toggle');
         const menu = document.getElementById('lang-menu');
@@ -294,27 +295,22 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Обновление иконки на текущий флаг
         function updateToggleIcon(lang) {
             toggle.innerHTML = lang === 'ru' ? '🇷🇺' : '🇬🇧';
         }
 
-        // Устанавливаем текущий язык
         const savedLang = localStorage.getItem('appLang') || 'ru';
         updateToggleIcon(savedLang);
 
-        // Клик по кнопке
         toggle.addEventListener('click', (e) => {
             e.stopPropagation();
             menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         });
 
-        // Закрытие при клике вне
         document.addEventListener('click', () => {
             menu.style.display = 'none';
         });
 
-        // Выбор языка
         menu.addEventListener('click', (e) => {
             if (e.target.tagName === 'BUTTON') {
                 const lang = e.target.dataset.lang;
@@ -329,7 +325,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- 6. ПЕРЕВОД ТЕКСТА ---
+    // --- 7. ПЕРЕВОД ТЕКСТА ---
     function translatePage(lang = localStorage.getItem('appLang') || 'ru') {
         const t = {
             ru: {
@@ -401,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function () {
         setText('version-info', t.version);
     }
 
-    // --- 7. РАСЧЁТ СЧЁТА ---
+    // --- 8. РАСЧЁТ СЧЁТА ---
     document.getElementById('bill-form')?.addEventListener('submit', function (e) {
         e.preventDefault();
         const participants = Array.from(document.querySelectorAll('#participants-container .participant-name'))
@@ -455,6 +451,7 @@ document.addEventListener('DOMContentLoaded', function () {
         showResult(totals, { subtotal, tip, total: totalWithTip });
     });
 
+    // --- 9. РЕЗУЛЬТАТ ---
     function showResult(totals, breakdown) {
         const result = document.getElementById('result');
         const details = document.getElementById('result-details');
@@ -485,20 +482,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const totalAll = Object.values(totals).reduce((a, b) => a + b, 0);
         const final = document.createElement('div');
         final.innerHTML = `<b>${t.toPay} ${totalAll.toFixed(2)} ₽</b>`;
-        final.style.color = '#0071e3';
+        final.style.color = 'var(--accent-color)';
         final.style.marginTop = '10px';
         details.appendChild(final);
         showNotification(lang === 'en' ? '✅ Bill calculated!' : '✅ Счёт рассчитан!', 'success');
     }
 
-    // --- 8. УВЕДОМЛЕНИЯ ---
+    // --- 10. УВЕДОМЛЕНИЯ ---
     function showNotification(message, type) {
         const n = document.createElement('div');
         n.className = `notification ${type}`;
         n.textContent = message;
         n.style.cssText = `
             position: fixed; top: 30px; right: 30px; padding: 14px 20px; border-radius: 10px;
-            background: ${type === 'success' ? '#28a745' : '#dc3545'}; color: white;
+            background: var(--notification-bg); color: white;
             z-index: 10000; box-shadow: 0 4px 20px rgba(0,0,0,0.15); font-size: 14px;
             backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);
             opacity: 1; transition: opacity 0.3s;
@@ -510,12 +507,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 5000);
     }
 
-    // --- 9. УДАЛЕНИЕ ТОВАРА ---
+    // --- 11. УДАЛЕНИЕ ТОВАРА ---
     window.removeItem = function (button) {
         button.closest('.item').remove();
     };
 
-    // --- 10. ЭКРАНИРОВАНИЕ HTML ---
+    // --- 12. ЭКРАНИРОВАНИЕ HTML ---
     function escapeHtml(s) {
         return s.toString()
             .replace(/&/g, '&amp;')
@@ -525,7 +522,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .replace(/'/g, '&#039;');
     }
 
-    // --- 11. ДОНАТЫ ---
+    // --- 13. ДОНАТЫ ---
     const donateAmount = document.getElementById('donate-amount');
     const donateButton = document.getElementById('donate-button');
     if (donateAmount && donateButton) {
@@ -537,19 +534,57 @@ document.addEventListener('DOMContentLoaded', function () {
         updateDonateLink();
     }
 
-    // --- 12. ЗАПУСК ---
+    // --- 14. ТЕМНАЯ ТЕМА — ИСПРАВЛЕНА И АКТИВНА ---
+    function setupThemeToggle() {
+        const toggle = document.getElementById('theme-toggle');
+
+        if (!toggle) {
+            console.error('❌ #theme-toggle не найден');
+            return;
+        }
+
+        const savedTheme = localStorage.getItem('appTheme') || 'light';
+
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            toggle.textContent = '🌙';
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            toggle.textContent = '🌞';
+        }
+
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
+
+            if (newTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                toggle.textContent = '🌙';
+                localStorage.setItem('appTheme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                toggle.textContent = '🌞';
+                localStorage.setItem('appTheme', 'light');
+            }
+            console.log('🌙 Тема изменена:', newTheme);
+        });
+    }
+
+    // --- 15. ЗАПУСК ВСЕХ МОДУЛЕЙ ---
     setupTabs();
     setupLanguageSwitcher();
     setupFileUpload();
     setupQRScanner();
+    setupThemeToggle();
     addParticipant();
     translatePage();
 
-    // --- 13. ЗАГРУЗКА jsQR ---
+    // --- 16. ЗАГРУЗКА jsQR ---
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
     script.async = true;
     script.onload = () => console.log('✅ jsQR успешно загружен');
-    script.onerror = () => console.error('❌ Не удалось загрузить jsQR');
+    script.onerror = () => console.error('❌ Ошибка загрузки jsQR');
     document.head.appendChild(script);
 });

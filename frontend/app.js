@@ -1,5 +1,5 @@
-// frontend/app.js — "Дели счёт" (Версия 5.3)
-// Исправлены: позиция, кликабельность, стабильность переключателей
+// frontend/app.js — Дели счёт (Версия 4.0)
+// Чистый интерфейс: язык = только флаги
 // Автор: GigaCode
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- 3. ЗАГРУЗКА ФАЙЛА — КЛИК + DRAG & DROP ---
+    // --- 3. ЗАГРУЗКА ФАЙЛА — КЛИК + DRAG & DROP (без зависимости от QR) ---
     function setupFileUpload() {
         const uploadArea = document.getElementById('upload-area');
         const receiptPreview = document.getElementById('receipt-preview');
@@ -105,18 +105,19 @@ document.addEventListener('DOMContentLoaded', function () {
         // Drag & Drop
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
-            uploadArea.style.background = 'var(--upload-bg)';
-            uploadArea.style.borderColor = 'var(--accent-color)';
-            uploadArea.classList.add('drag-over');
+            uploadArea.style.background = '#eef4ff';
+            uploadArea.style.borderColor = '#0071e3';
         });
 
         uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('drag-over');
+            uploadArea.style.background = '#f8f8ff';
+            uploadArea.style.borderColor = '#d2d2d7';
         });
 
         uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
-            uploadArea.classList.remove('drag-over');
+            uploadArea.style.background = '#f8f8ff';
+            uploadArea.style.borderColor = '#d2d2d7';
 
             const file = e.dataTransfer.files[0];
             if (file && file.type.startsWith('image/')) {
@@ -124,6 +125,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 receiptPreview.innerHTML = `
                     <img src="${url}" alt="Чек" style="max-width:100%;border-radius:12px;margin-top:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
                 `;
+            } else {
+                alert('Пожалуйста, перетащите изображение');
             }
         });
     }
@@ -148,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 video.style = 'width:100%;max-width:400px;border-radius:12px;margin:10px auto;display:block';
 
                 const container = document.getElementById('upload-area');
-                container.innerHTML = '<p style="color:var(--accent-color);margin:10px 0">🔍 Наведите камеру на QR-код</p>';
+                container.innerHTML = '<p style="color:#0071e3;margin:10px 0">🔍 Наведите камеру на QR-код</p>';
                 container.appendChild(video);
 
                 const canvas = document.createElement('canvas');
@@ -251,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             fillItemsFromCheck(items);
             showNotification('✅ Чек загружен', 'success');
-            container.innerHTML = '<p style="color:var(--accent-color)">✅ Чек успешно загружен</p>';
+            container.innerHTML = '<p style="color:green">✅ Чек успешно загружен</p>';
 
         } catch (err) {
             console.error('❌ Ошибка загрузки чека:', err);
@@ -291,22 +294,27 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Обновление иконки на текущий флаг
         function updateToggleIcon(lang) {
             toggle.innerHTML = lang === 'ru' ? '🇷🇺' : '🇬🇧';
         }
 
+        // Устанавливаем текущий язык
         const savedLang = localStorage.getItem('appLang') || 'ru';
         updateToggleIcon(savedLang);
 
+        // Клик по кнопке
         toggle.addEventListener('click', (e) => {
             e.stopPropagation();
             menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         });
 
+        // Закрытие при клике вне
         document.addEventListener('click', () => {
             menu.style.display = 'none';
         });
 
+        // Выбор языка
         menu.addEventListener('click', (e) => {
             if (e.target.tagName === 'BUTTON') {
                 const lang = e.target.dataset.lang;
@@ -477,7 +485,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const totalAll = Object.values(totals).reduce((a, b) => a + b, 0);
         const final = document.createElement('div');
         final.innerHTML = `<b>${t.toPay} ${totalAll.toFixed(2)} ₽</b>`;
-        final.style.color = 'var(--accent-color)';
+        final.style.color = '#0071e3';
         final.style.marginTop = '10px';
         details.appendChild(final);
         showNotification(lang === 'en' ? '✅ Bill calculated!' : '✅ Счёт рассчитан!', 'success');
@@ -490,7 +498,7 @@ document.addEventListener('DOMContentLoaded', function () {
         n.textContent = message;
         n.style.cssText = `
             position: fixed; top: 30px; right: 30px; padding: 14px 20px; border-radius: 10px;
-            background: var(--notification-bg); color: white;
+            background: ${type === 'success' ? '#28a745' : '#dc3545'}; color: white;
             z-index: 10000; box-shadow: 0 4px 20px rgba(0,0,0,0.15); font-size: 14px;
             backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);
             opacity: 1; transition: opacity 0.3s;
@@ -529,60 +537,19 @@ document.addEventListener('DOMContentLoaded', function () {
         updateDonateLink();
     }
 
-    // --- 12. ТЕМНАЯ ТЕМА — ИСПРАВЛЕНА: КЛИК, ПОЗИЦИЯ, СТИЛЬ ---
-    function setupThemeToggle() {
-        const toggle = document.getElementById('theme-toggle');
-
-        if (!toggle) {
-            console.error('❌ #theme-toggle не найден в DOM');
-            return;
-        }
-
-        const savedTheme = localStorage.getItem('appTheme') || 'light';
-
-        if (savedTheme === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            toggle.textContent = '🌙';
-        } else {
-            document.documentElement.removeAttribute('data-theme');
-            toggle.textContent = '🌞';
-        }
-
-        // Главное: делаем активным!
-        toggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            const newTheme = isDark ? 'light' : 'dark';
-
-            if (newTheme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                toggle.textContent = '🌙';
-                localStorage.setItem('appTheme', 'dark');
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-                toggle.textContent = '🌞';
-                localStorage.setItem('appTheme', 'light');
-            }
-
-            console.log('🌙 Тема переключена:', newTheme);
-        });
-    }
-
-    // --- 13. ЗАПУСК ВСЕХ МОДУЛЕЙ ---
+    // --- 12. ЗАПУСК ---
     setupTabs();
     setupLanguageSwitcher();
     setupFileUpload();
     setupQRScanner();
-    setupThemeToggle();  // Кнопка слева — исправлена!
     addParticipant();
     translatePage();
 
-    // --- 14. ЗАГРУЗКА jsQR ---
+    // --- 13. ЗАГРУЗКА jsQR ---
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
     script.async = true;
     script.onload = () => console.log('✅ jsQR успешно загружен');
-    script.onerror = () => console.error('❌ Ошибка загрузки jsQR');
+    script.onerror = () => console.error('❌ Не удалось загрузить jsQR');
     document.head.appendChild(script);
 });

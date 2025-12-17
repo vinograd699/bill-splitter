@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function () {
         container.innerHTML = '<div class="loading">📥 Получение чека...</div>';
 
         try {
-            const response = await fetch('http://localhost:3000/api/check', {
+            const response = await fetch('https://delischet.ru/api/check', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({ fn, fd, fp, t, s })
